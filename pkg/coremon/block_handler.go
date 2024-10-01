@@ -1,6 +1,7 @@
 package coremon
 
 import (
+	"context"
 	"time"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
@@ -14,7 +15,7 @@ import (
 func NewBlockHandlerWithMetrics(
 	logger log.Logger,
 	chainID string,
-	influxWriteAPI influxdb2api.WriteAPI,
+	influxWriteAPI influxdb2api.WriteAPIBlocking,
 ) NewBlockHandlerFn {
 	logger = logger.WithField("fn", "block_handler")
 	metricTags := metrics.NewTags(map[string]string{
@@ -26,6 +27,7 @@ func NewBlockHandlerWithMetrics(
 
 	newBlockHandlerPace := pace.New("blocks synced", 1*time.Minute, newPaceReporter(logger))
 	txsInBlocksPace := pace.New("tx throughput", 1*time.Minute, newPaceReporter(logger))
+	influxPointsOutPace := pace.New("influx points out", 1*time.Minute, newPaceReporter(logger))
 
 	txThroughputReporting := pace.New("", 15*time.Second, func(_ string, timeframe time.Duration, value float64) {
 		// throughputReal is the tx throughput measured relative to the real-world time clock
@@ -134,7 +136,14 @@ func NewBlockHandlerWithMetrics(
 		}
 
 		if len(pointsToWrite) > 0 {
-			writeInfluxPoints(influxWriteAPI, pointsToWrite)
+			ctx, cancelFn := context.WithTimeout(
+				context.Background(),
+				10*time.Second,
+			)
+			writeInfluxPoints(ctx, logger, influxWriteAPI, pointsToWrite)
+			cancelFn()
+
+			influxPointsOutPace.StepN(len(pointsToWrite))
 		}
 
 		return nil
@@ -142,14 +151,19 @@ func NewBlockHandlerWithMetrics(
 }
 
 func writeInfluxPoints(
-	writeAPI influxdb2api.WriteAPI,
+	ctx context.Context,
+	logger log.Logger,
+	writeAPI influxdb2api.WriteAPIBlocking,
 	points []*influxwrite.Point,
 ) {
-	defer func() {
-		writeAPI.Flush()
-	}()
+	// defer func() {
+	// 	writeAPI.Flush()
+	// }()
 
 	for _, point := range points {
-		writeAPI.WritePoint(point)
+		if err := writeAPI.WritePoint(ctx, point); err != nil {
+			logger.WithError(err).Warning("failed to write point to InfluxDB")
+			return
+		}
 	}
 }
