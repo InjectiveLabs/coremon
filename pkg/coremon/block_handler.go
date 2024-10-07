@@ -65,6 +65,8 @@ func NewBlockHandlerWithMetrics(
 			"latency": latency,
 		}).Debug("got new block")
 
+		allTags := metricTags.WithBaseTags()
+
 		var (
 			// blockTimeDiff is the difference between two finalized block timestamps,
 			// enough to compute avg blocktime in the metrics postprocessing.
@@ -149,7 +151,6 @@ func NewBlockHandlerWithMetrics(
 				}
 			}
 
-			allTags := metricTags.WithBaseTags()
 			allTags.Range(func(k, v string) bool {
 				p = p.AddTag(k, v)
 				return false
@@ -164,7 +165,6 @@ func NewBlockHandlerWithMetrics(
 			p = p.AddField("height", data.Block.Height)
 			p = p.AddTag("ev_type", event.Type)
 
-			allTags := metricTags.WithBaseTags()
 			allTags.Range(func(k, v string) bool {
 				p = p.AddTag(k, v)
 				return false
@@ -183,7 +183,32 @@ func NewBlockHandlerWithMetrics(
 					p = p.AddField("val", int64(val))
 				}
 
-				allTags := metricTags.WithBaseTags()
+				allTags.Range(func(k, v string) bool {
+					p = p.AddTag(k, v)
+					return false
+				})
+
+				pointsToWrite = append(pointsToWrite, p)
+			}
+
+			arityFieldsMap, err := parseEventArity(event)
+			if err != nil {
+				err = errors.Wrap(err, "failed to parse block event arity")
+				return err
+			}
+
+			for fieldName, arity := range arityFieldsMap {
+				if arity == 0 {
+					continue
+				}
+
+				p := influxdb2.NewPointWithMeasurement("coremon_block_event_arity")
+				p = p.SetTime(data.Block.Time)
+				p = p.AddField("height", data.Block.Height)
+				p = p.AddTag("ev_type", event.Type)
+				p = p.AddTag("arity_field", fieldName)
+				p = p.AddField("arity", arity)
+
 				allTags.Range(func(k, v string) bool {
 					p = p.AddTag(k, v)
 					return false
@@ -200,7 +225,6 @@ func NewBlockHandlerWithMetrics(
 				p = p.AddField("height", data.Block.Height)
 				p = p.AddTag("ev_type", event.Type)
 
-				allTags := metricTags.WithBaseTags()
 				allTags.Range(func(k, v string) bool {
 					p = p.AddTag(k, v)
 					return false
@@ -222,7 +246,33 @@ func NewBlockHandlerWithMetrics(
 					p = p.AddField("gas_used", txResult.GasUsed)
 					p = p.AddField("events", len(txResult.Events))
 
-					allTags := metricTags.WithBaseTags()
+					allTags.Range(func(k, v string) bool {
+						p = p.AddTag(k, v)
+						return false
+					})
+
+					pointsToWrite = append(pointsToWrite, p)
+				}
+
+				arityFieldsMap, err := parseEventArity(event)
+				if err != nil {
+					err = errors.Wrap(err, "failed to parse tx event arity")
+					return err
+				}
+
+				for fieldName, arity := range arityFieldsMap {
+					if arity == 0 {
+						continue
+					}
+
+					p := influxdb2.NewPointWithMeasurement("coremon_tx_event_arity")
+					p = p.SetTime(data.Block.Time)
+					p = p.AddField("height", data.Block.Height)
+					p = p.AddField("tx_idx", txIndex)
+					p = p.AddTag("ev_type", event.Type)
+					p = p.AddTag("arity_field", fieldName)
+					p = p.AddField("arity", arity)
+
 					allTags.Range(func(k, v string) bool {
 						p = p.AddTag(k, v)
 						return false
@@ -270,7 +320,6 @@ func NewBlockHandlerWithMetrics(
 
 			p = p.AddField("msgs", len(filteredMsgs))
 
-			allTags := metricTags.WithBaseTags()
 			allTags.Range(func(k, v string) bool {
 				p = p.AddTag(k, v)
 				return false
@@ -279,13 +328,47 @@ func NewBlockHandlerWithMetrics(
 			pointsToWrite = append(pointsToWrite, p)
 
 			for _, msg := range filteredMsgs {
+				arityFieldsMap, err := parseMsgArity(msg)
+				if err != nil {
+					err = errors.Wrap(err, "failed to parse msg arity")
+					return err
+				}
+
+				var totalArity int
+				for fieldName, arity := range arityFieldsMap {
+					if arity == 0 {
+						continue
+					}
+
+					totalArity += arity
+
+					p := influxdb2.NewPointWithMeasurement("coremon_tx_msg_arity")
+					p = p.SetTime(data.Block.Time)
+					p = p.AddField("height", data.Block.Height)
+					p = p.AddField("tx_idx", txIndex)
+					p = p.AddTag("msg_name", proto.MessageName(msg))
+					p = p.AddTag("arity_field", fieldName)
+					p = p.AddField("arity", arity)
+
+					allTags.Range(func(k, v string) bool {
+						p = p.AddTag(k, v)
+						return false
+					})
+
+					pointsToWrite = append(pointsToWrite, p)
+				}
+
+				if totalArity == 0 {
+					totalArity = 1
+				}
+
 				p := influxdb2.NewPointWithMeasurement("coremon_tx_msgs")
 				p = p.SetTime(data.Block.Time)
 				p = p.AddField("height", data.Block.Height)
 				p = p.AddField("tx_idx", txIndex)
 				p = p.AddTag("msg_name", proto.MessageName(msg))
+				p = p.AddField("msg_arity", totalArity)
 
-				allTags := metricTags.WithBaseTags()
 				allTags.Range(func(k, v string) bool {
 					p = p.AddTag(k, v)
 					return false
