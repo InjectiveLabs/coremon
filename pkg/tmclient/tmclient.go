@@ -4,15 +4,14 @@ import (
 	"context"
 	"time"
 
-	rpcclient "github.com/cometbft/cometbft/rpc/client"
-	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
-	ctypes "github.com/cometbft/cometbft/rpc/core/types"
-	tmctypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/pkg/errors"
+	rpcclient "github.com/tendermint/tendermint/rpc/client"
+	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
+	ctypes "github.com/tendermint/tendermint/rpc/coretypes"
 )
 
 type TendermintClient interface {
-	GetBlock(ctx context.Context, height int64) (*tmctypes.ResultBlock, error)
+	GetBlock(ctx context.Context, height int64) (*ctypes.ResultBlock, error)
 	GetLatestBlockHeight(ctx context.Context) (int64, time.Time, error)
 	GetBlockResults(ctx context.Context, height int64) (*ctypes.ResultBlockResults, error)
 }
@@ -22,7 +21,7 @@ type tmClient struct {
 }
 
 func NewRPCClient(rpcNodeAddr string) (TendermintClient, error) {
-	rpcClient, err := rpchttp.NewWithTimeout(rpcNodeAddr, "/websocket", 10)
+	rpcClient, err := rpchttp.NewWithTimeout(rpcNodeAddr, 10*time.Second)
 	if err != nil {
 		err = errors.Wrap(err, "failed to init rpcClient")
 		return nil, err
@@ -34,7 +33,7 @@ func NewRPCClient(rpcNodeAddr string) (TendermintClient, error) {
 }
 
 // GetBlock queries for a block by height. An error is returned if the query fails.
-func (c *tmClient) GetBlock(ctx context.Context, height int64) (*tmctypes.ResultBlock, error) {
+func (c *tmClient) GetBlock(ctx context.Context, height int64) (*ctypes.ResultBlock, error) {
 	return c.rpcClient.Block(ctx, &height)
 }
 

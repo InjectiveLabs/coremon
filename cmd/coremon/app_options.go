@@ -52,7 +52,7 @@ func initCosmosOptions(
 
 	*bftRPC = c.String(cli.StringOpt{
 		Name:   "bft-rpc",
-		Desc:   "CometBFT RPC endpoint",
+		Desc:   "tendermint RPC endpoint",
 		EnvVar: "COREMON_BFT_RPC",
 		Value:  "http://localhost:26657",
 	})

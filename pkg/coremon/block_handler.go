@@ -151,6 +151,9 @@ func NewBlockHandlerWithMetrics(
 				}
 			}
 
+			p.AddTag("proposer", data.Block.ProposerAddress.String())
+			p.AddField("proposer", data.Block.ProposerAddress.String())
+
 			allTags.Range(func(k, v string) bool {
 				p = p.AddTag(k, v)
 				return false
@@ -177,9 +180,9 @@ func NewBlockHandlerWithMetrics(
 				p = p.SetTime(data.Block.Time)
 				p = p.AddField("height", data.Block.Height)
 				p = p.AddTag("ev_type", event.Type)
-				p = p.AddTag("attr_key", attr.Key)
+				p = p.AddTag("attr_key", string(attr.Key))
 				p = p.AddField("valsize", len(attr.Value))
-				if val, err := strconv.Atoi(attr.Value); err == nil {
+				if val, err := strconv.Atoi(string(attr.Value)); err == nil {
 					p = p.AddField("val", int64(val))
 				}
 
@@ -237,9 +240,9 @@ func NewBlockHandlerWithMetrics(
 					p = p.SetTime(data.Block.Time)
 					p = p.AddField("height", data.Block.Height)
 					p = p.AddTag("ev_type", event.Type)
-					p = p.AddTag("attr_key", attr.Key)
+					p = p.AddTag("attr_key", string(attr.Key))
 					p = p.AddField("valsize", len(attr.Value))
-					if val, err := strconv.Atoi(attr.Value); err == nil {
+					if val, err := strconv.Atoi(string(attr.Value)); err == nil {
 						p = p.AddField("val", int64(val))
 					}
 					p = p.AddField("gas_wanted", txResult.GasWanted)
@@ -305,7 +308,7 @@ func NewBlockHandlerWithMetrics(
 					for _, authzInternalAny := range msgExec.Msgs {
 						// append interal authz msgs only
 						var authzInternalMsg proto.Message
-						if err := injectiveCdc.UnpackAny(authzInternalAny, &authzInternalMsg); err != nil {
+						if err := seiCdc.UnpackAny(authzInternalAny, &authzInternalMsg); err != nil {
 							err = errors.Wrapf(err, "failed to unpack any from %s", authzInternalAny.TypeUrl)
 							return err
 						}
