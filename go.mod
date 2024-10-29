@@ -266,10 +266,8 @@ replace (
 	github.com/cosmos/ibc-apps/modules/ibc-hooks/v8 => github.com/InjectiveLabs/ibc-apps/modules/ibc-hooks/v8 v8.0.0-inj-0
 	github.com/cosmos/ibc-go/v8 => github.com/InjectiveLabs/ibc-go/v8 v8.3.2-inj-0
 
-	// geth dev
 	github.com/ethereum/go-ethereum => github.com/InjectiveLabs/go-ethereum v1.9.22-0.20240923100242-5e28e23d353e
-	// ethermint develop
-	github.com/evmos/ethermint => github.com/InjectiveLabs/ethermint v0.0.0-20240930111106-7044f2e67e84
+	github.com/evmos/ethermint => github.com/InjectiveLabs/ethermint v0.0.0-20241023153841-dd4800f071c1
 
 	// For interchaintest
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
