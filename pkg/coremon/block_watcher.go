@@ -175,22 +175,32 @@ func (w *tmBlockWatcher) runInitialSync(ctx context.Context, latestSyncedBlock u
 }
 
 func (w *tmBlockWatcher) StartWatching(latestSyncedBlock uint64) {
+	rewindTo := latestSyncedBlock
+
 	// initial sync: wait until getting up to chain height
 	if err := w.runInitialSync(w.rootCtx, latestSyncedBlock); err != nil {
 		w.logger.WithError(err).Fatal("failed to run initial block sync")
 		return
 	}
 
-	w.latestSyncedBlockMux.RLock()
+	w.latestSyncedBlockMux.Lock()
+	if rewindTo != 0 {
+		w.latestSyncedBlock = uint64(latestSyncedBlock) - 1
+	}
+
 	w.blockGetter = w.initBlockGetter(w.latestSyncedBlock+1, w.parallelBlockFetchJobs)
-	w.latestSyncedBlockMux.RUnlock()
+	w.latestSyncedBlockMux.Unlock()
 
 	newBlocks := w.blockGetter.NewBlockDataChan()
 
 	// signal that the syncing is officially done
 	close(w.isSynced)
 
-	w.logger.Info("Block Sync: Initial sync done. Continuing to poll TmRPC for the new blocks.")
+	if rewindTo != 0 {
+		w.logger.Infof("Block Sync: Initial sync done. Rewinding to block %d", rewindTo)
+	} else {
+		w.logger.Info("Block Sync: Initial sync done. Continuing to poll BFT RPC for the new blocks.")
+	}
 
 	for {
 		select {

@@ -23,6 +23,9 @@ func processCmd(c *cli.Cmd) {
 		influxDBName   *string
 		influxUser     *string
 		influxPassword *string
+
+		// args
+		rewindFromBlock *int
 	)
 
 	initCosmosOptions(
@@ -46,6 +49,8 @@ func processCmd(c *cli.Cmd) {
 
 		appLogger.Info("CoreMon Block Watching routine starts")
 	}
+
+	rewindFromBlock = c.IntArg("REWIND_FROM", 0, "Rewind from block - starts watching from this block in the past.")
 
 	c.Action = func() {
 		defer closer.Close()
@@ -95,7 +100,12 @@ func processCmd(c *cli.Cmd) {
 		// Launch chain block watcher routine
 		//
 
-		go blockWatcher.StartWatching(0)
+		rewindFrom := *rewindFromBlock
+		if rewindFrom < 0 {
+			rewindFrom = 0
+		}
+
+		go blockWatcher.StartWatching(uint64(rewindFrom))
 		closer.Bind(func() {
 			blockWatcher.Close()
 		})
