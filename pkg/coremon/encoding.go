@@ -40,6 +40,10 @@ import (
 	tokenfactorytypes "github.com/InjectiveLabs/sdk-go/chain/tokenfactory/types"
 	ctypes "github.com/InjectiveLabs/sdk-go/chain/types"
 	wasmxtypes "github.com/InjectiveLabs/sdk-go/chain/wasmx/types"
+	evm "github.com/evmos/ethermint/x/evm"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	feemarket "github.com/evmos/ethermint/x/feemarket"
+	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 )
 
 var (
@@ -63,6 +67,8 @@ func init() {
 	permissionstypes.RegisterInterfaces(interfaceRegistry)
 	tokenfactorytypes.RegisterInterfaces(interfaceRegistry)
 	wasmxtypes.RegisterInterfaces(interfaceRegistry)
+	evmtypes.RegisterInterfaces(interfaceRegistry)
+	feemarkettypes.RegisterInterfaces(interfaceRegistry)
 
 	injectiveCdc = codec.NewProtoCodec(interfaceRegistry)
 }
@@ -116,6 +122,8 @@ func defaultEncoding() testutil.TestEncodingConfig {
 		ibcwasm.AppModuleBasic{},
 		ccvprovider.AppModuleBasic{},
 		wasm.AppModuleBasic{},
+		evm.AppModuleBasic{},
+		feemarket.AppModuleBasic{},
 	)
 }
 
