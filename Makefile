@@ -22,4 +22,7 @@ push:
 cook:
 	rsync -r ../coremon cooking:~/go/src/
 
-.PHONY: install image push cook
+cook-mb:
+	rsync -r ../coremon mb:~/go/src/
+
+.PHONY: install image push cook cook-mb
