@@ -407,6 +407,10 @@ func writeInfluxPoints(
 	// 	writeAPI.Flush()
 	// }()
 
+	if writeAPI == nil {
+		return
+	}
+
 	for _, point := range points {
 		if err := writeAPI.WritePoint(ctx, point); err != nil {
 			logger.WithError(err).Warning("failed to write point to InfluxDB")

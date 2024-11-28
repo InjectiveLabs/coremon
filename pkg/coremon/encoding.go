@@ -31,7 +31,9 @@ import (
 	wasm "github.com/CosmWasm/wasmd/x/wasm"
 	auctiontypes "github.com/InjectiveLabs/sdk-go/chain/auction/types"
 	chaincodec "github.com/InjectiveLabs/sdk-go/chain/codec"
+	evmtypes "github.com/InjectiveLabs/sdk-go/chain/evm/types"
 	exchangetypes "github.com/InjectiveLabs/sdk-go/chain/exchange/types"
+	feemarkettypes "github.com/InjectiveLabs/sdk-go/chain/feemarket/types"
 	insurancetypes "github.com/InjectiveLabs/sdk-go/chain/insurance/types"
 	ocrtypes "github.com/InjectiveLabs/sdk-go/chain/ocr/types"
 	oracletypes "github.com/InjectiveLabs/sdk-go/chain/oracle/types"
@@ -40,10 +42,6 @@ import (
 	tokenfactorytypes "github.com/InjectiveLabs/sdk-go/chain/tokenfactory/types"
 	ctypes "github.com/InjectiveLabs/sdk-go/chain/types"
 	wasmxtypes "github.com/InjectiveLabs/sdk-go/chain/wasmx/types"
-	evm "github.com/evmos/ethermint/x/evm"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	feemarket "github.com/evmos/ethermint/x/feemarket"
-	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 )
 
 var (
@@ -122,8 +120,6 @@ func defaultEncoding() testutil.TestEncodingConfig {
 		ibcwasm.AppModuleBasic{},
 		ccvprovider.AppModuleBasic{},
 		wasm.AppModuleBasic{},
-		evm.AppModuleBasic{},
-		feemarket.AppModuleBasic{},
 	)
 }
 
