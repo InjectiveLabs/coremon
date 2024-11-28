@@ -305,7 +305,7 @@ func NewBlockHandlerWithMetrics(
 					for _, authzInternalAny := range msgExec.Msgs {
 						// append interal authz msgs only
 						var authzInternalMsg proto.Message
-						if err := injectiveCdc.UnpackAny(authzInternalAny, &authzInternalMsg); err != nil {
+						if err := osmosisCdc.UnpackAny(authzInternalAny, &authzInternalMsg); err != nil {
 							err = errors.Wrapf(err, "failed to unpack any from %s", authzInternalAny.TypeUrl)
 							return err
 						}
