@@ -20,7 +20,7 @@ import (
 func NewBlockHandlerWithMetrics(
 	logger log.Logger,
 	chainID string,
-	influxWriteAPI influxdb2api.WriteAPIBlocking,
+	influxWriteAPI influxdb2api.WriteAPI,
 ) NewBlockHandlerFn {
 	logger = logger.WithField("fn", "block_handler")
 	metricTags := metrics.NewTags(map[string]string{
@@ -400,7 +400,7 @@ func NewBlockHandlerWithMetrics(
 func writeInfluxPoints(
 	ctx context.Context,
 	logger log.Logger,
-	writeAPI influxdb2api.WriteAPIBlocking,
+	writeAPI influxdb2api.WriteAPI,
 	points []*influxwrite.Point,
 ) {
 	// defer func() {
@@ -408,9 +408,10 @@ func writeInfluxPoints(
 	// }()
 
 	for _, point := range points {
-		if err := writeAPI.WritePoint(ctx, point); err != nil {
-			logger.WithError(err).Warning("failed to write point to InfluxDB")
-			return
-		}
+		writeAPI.WritePoint(point)
+		// if err := writeAPI.WritePoint(ctx, point); err != nil {
+		// 	logger.WithError(err).Warning("failed to write point to InfluxDB")
+		// 	return
+		// }
 	}
 }

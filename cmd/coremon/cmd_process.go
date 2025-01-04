@@ -61,19 +61,19 @@ func processCmd(c *cli.Cmd) {
 
 		var (
 			influxClient   influxdb2.Client
-			influxWriteAPI influxdb2api.WriteAPIBlocking
+			influxWriteAPI influxdb2api.WriteAPI
 		)
 
 		if *influxEnabled {
 			influxClient = influxdb2.NewClient(*influxEndpoint, *influxUser+":"+*influxPassword)
-			influxWriteAPI = influxClient.WriteAPIBlocking("", *influxDBName)
+			influxWriteAPI = influxClient.WriteAPI("", *influxDBName)
 
-			// errorsCh := influxWriteAPI.Errors()
-			// go func() {
-			// 	for err := range errorsCh {
-			// 		appLogger.WithError(err).Warning("InfluxDB write error")
-			// 	}
-			// }()
+			errorsCh := influxWriteAPI.Errors()
+			go func() {
+				for err := range errorsCh {
+					appLogger.WithError(err).Warning("InfluxDB write error")
+				}
+			}()
 
 			closer.Bind(func() {
 				influxClient.Close()
