@@ -28,8 +28,6 @@ func NewBlockHandlerWithMetrics(
 		"chain_id": chainID,
 	})
 
-	blockTimestamps := make(map[uint64]time.Time)
-
 	newBlockHandlerPace := pace.New("blocks synced", 1*time.Minute, newPaceReporter(logger))
 	txsInBlocksPace := pace.New("tx throughput", 1*time.Minute, newPaceReporter(logger))
 	influxPointsOutPace := pace.New("influx points out", 1*time.Minute, newPaceReporter(logger))
@@ -52,14 +50,14 @@ func NewBlockHandlerWithMetrics(
 		}, metricTags)
 	})
 
-	return func(data NewBlockData) error {
+	return func(prevBlock, nextBlock NewBlockData) error {
 		handlerStart := time.Now()
 
-		blockNumber := uint64(data.Block.Height)
-		txsInBlock := len(data.BlockResults.TxsResults)
-		blockEvents := len(data.BlockResults.FinalizeBlockEvents)
+		blockNumber := uint64(nextBlock.Block.Height)
+		txsInBlock := len(nextBlock.BlockResults.TxsResults)
+		blockEvents := len(nextBlock.BlockResults.FinalizeBlockEvents)
 
-		latency := time.Since(data.Block.Time)
+		latency := time.Since(nextBlock.Block.Time)
 		logger.WithFields(log.Fields{
 			"height":  blockNumber,
 			"latency": latency,
@@ -89,18 +87,15 @@ func NewBlockHandlerWithMetrics(
 			txEventsPerBlock int64
 		)
 
-		blockTimestamps[blockNumber] = data.Block.Time
-		if prevBlockTimestamp, ok := blockTimestamps[blockNumber-1]; ok {
-			blockTimeDiff = data.Block.Time.Sub(prevBlockTimestamp)
-			txTroughputAbs = float64(txsInBlock) / (float64(blockTimeDiff) / float64(time.Second))
-		}
+		blockTimeDiff = nextBlock.Block.Time.Sub(prevBlock.Block.Time)
+		txTroughputAbs = float64(txsInBlock) / (float64(blockTimeDiff) / float64(time.Second))
 
 		if txsInBlock > 0 {
-			for _, tx := range data.Block.Txs {
+			for _, tx := range nextBlock.Block.Txs {
 				txBytes += len(tx)
 			}
 
-			for _, txResult := range data.BlockResults.TxsResults {
+			for _, txResult := range nextBlock.BlockResults.TxsResults {
 				txGasUsed += txResult.GasUsed
 				txGasWanted += txResult.GasWanted
 				txEventsPerBlock += int64(len(txResult.Events))
@@ -124,8 +119,8 @@ func NewBlockHandlerWithMetrics(
 		pointsToWrite := make([]*influxwrite.Point, 0, 1)
 		{
 			p := influxdb2.NewPointWithMeasurement("coremon_block_report")
-			p = p.SetTime(data.Block.Time)
-			p = p.AddField("height", data.Block.Height)
+			p = p.SetTime(nextBlock.Block.Time)
+			p = p.AddField("height", nextBlock.Block.Height)
 
 			if txsInBlock > 0 {
 				p = p.AddField("txs", txsInBlock)
@@ -159,10 +154,10 @@ func NewBlockHandlerWithMetrics(
 			pointsToWrite = append(pointsToWrite, p)
 		}
 
-		for _, event := range data.BlockResults.FinalizeBlockEvents {
+		for _, event := range nextBlock.BlockResults.FinalizeBlockEvents {
 			p := influxdb2.NewPointWithMeasurement("coremon_block_events")
-			p = p.SetTime(data.Block.Time)
-			p = p.AddField("height", data.Block.Height)
+			p = p.SetTime(nextBlock.Block.Time)
+			p = p.AddField("height", nextBlock.Block.Height)
 			p = p.AddTag("ev_type", event.Type)
 
 			allTags.Range(func(k, v string) bool {
@@ -174,8 +169,8 @@ func NewBlockHandlerWithMetrics(
 
 			for _, attr := range event.Attributes {
 				p := influxdb2.NewPointWithMeasurement("coremon_block_events_attrs")
-				p = p.SetTime(data.Block.Time)
-				p = p.AddField("height", data.Block.Height)
+				p = p.SetTime(nextBlock.Block.Time)
+				p = p.AddField("height", nextBlock.Block.Height)
 				p = p.AddTag("ev_type", event.Type)
 				p = p.AddTag("attr_key", attr.Key)
 				p = p.AddField("valsize", len(attr.Value))
@@ -203,8 +198,8 @@ func NewBlockHandlerWithMetrics(
 				}
 
 				p := influxdb2.NewPointWithMeasurement("coremon_block_event_arity")
-				p = p.SetTime(data.Block.Time)
-				p = p.AddField("height", data.Block.Height)
+				p = p.SetTime(nextBlock.Block.Time)
+				p = p.AddField("height", nextBlock.Block.Height)
 				p = p.AddTag("ev_type", event.Type)
 				p = p.AddTag("arity_field", fieldName)
 				p = p.AddField("arity", arity)
@@ -218,11 +213,11 @@ func NewBlockHandlerWithMetrics(
 			}
 		}
 
-		for txIndex, txResult := range data.BlockResults.TxsResults {
+		for txIndex, txResult := range nextBlock.BlockResults.TxsResults {
 			for _, event := range txResult.Events {
 				p := influxdb2.NewPointWithMeasurement("coremon_tx_events")
-				p = p.SetTime(data.Block.Time)
-				p = p.AddField("height", data.Block.Height)
+				p = p.SetTime(nextBlock.Block.Time)
+				p = p.AddField("height", nextBlock.Block.Height)
 				p = p.AddTag("ev_type", event.Type)
 
 				allTags.Range(func(k, v string) bool {
@@ -234,8 +229,8 @@ func NewBlockHandlerWithMetrics(
 
 				for _, attr := range event.Attributes {
 					p := influxdb2.NewPointWithMeasurement("coremon_tx_events_attrs")
-					p = p.SetTime(data.Block.Time)
-					p = p.AddField("height", data.Block.Height)
+					p = p.SetTime(nextBlock.Block.Time)
+					p = p.AddField("height", nextBlock.Block.Height)
 					p = p.AddTag("ev_type", event.Type)
 					p = p.AddTag("attr_key", attr.Key)
 					p = p.AddField("valsize", len(attr.Value))
@@ -266,8 +261,8 @@ func NewBlockHandlerWithMetrics(
 					}
 
 					p := influxdb2.NewPointWithMeasurement("coremon_tx_event_arity")
-					p = p.SetTime(data.Block.Time)
-					p = p.AddField("height", data.Block.Height)
+					p = p.SetTime(nextBlock.Block.Time)
+					p = p.AddField("height", nextBlock.Block.Height)
 					p = p.AddField("tx_idx", txIndex)
 					p = p.AddTag("ev_type", event.Type)
 					p = p.AddTag("arity_field", fieldName)
@@ -283,15 +278,15 @@ func NewBlockHandlerWithMetrics(
 			}
 
 			p := influxdb2.NewPointWithMeasurement("coremon_txs")
-			p = p.SetTime(data.Block.Time)
-			p = p.AddField("height", data.Block.Height)
+			p = p.SetTime(nextBlock.Block.Time)
+			p = p.AddField("height", nextBlock.Block.Height)
 			p = p.AddField("tx_idx", txIndex)
 			p = p.AddField("events", len(txResult.Events))
 			p = p.AddField("datasize", len(txResult.Data))
 			p = p.AddTag("code", fmt.Sprintf("%d", txResult.Code))
 			p = p.AddTag("codespace", txResult.Codespace)
 
-			parsedTx, err := decodeABCITx(data.Block.Txs[txIndex])
+			parsedTx, err := decodeABCITx(nextBlock.Block.Txs[txIndex])
 			if err != nil {
 				err = errors.Wrap(err, "failed to decode ABCI Tx")
 				return err
@@ -343,8 +338,8 @@ func NewBlockHandlerWithMetrics(
 					totalArity += arity
 
 					p := influxdb2.NewPointWithMeasurement("coremon_tx_msg_arity")
-					p = p.SetTime(data.Block.Time)
-					p = p.AddField("height", data.Block.Height)
+					p = p.SetTime(nextBlock.Block.Time)
+					p = p.AddField("height", nextBlock.Block.Height)
 					p = p.AddField("tx_idx", txIndex)
 					p = p.AddTag("msg_name", proto.MessageName(msg))
 					p = p.AddTag("arity_field", fieldName)
@@ -363,8 +358,8 @@ func NewBlockHandlerWithMetrics(
 				}
 
 				p := influxdb2.NewPointWithMeasurement("coremon_tx_msgs")
-				p = p.SetTime(data.Block.Time)
-				p = p.AddField("height", data.Block.Height)
+				p = p.SetTime(nextBlock.Block.Time)
+				p = p.AddField("height", nextBlock.Block.Height)
 				p = p.AddField("tx_idx", txIndex)
 				p = p.AddTag("msg_name", proto.MessageName(msg))
 				p = p.AddField("msg_arity", totalArity)

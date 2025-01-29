@@ -29,7 +29,10 @@ type BlockGetter interface {
 	Close()
 }
 
-type NewBlockHandlerFn func(ev NewBlockData) error
+type NewBlockHandlerFn func(
+	prevBlock,
+	nextBlock NewBlockData,
+) error
 
 func NewTmBlockWatcher(
 	ctx context.Context,
@@ -202,30 +205,91 @@ func (w *tmBlockWatcher) StartWatching(latestSyncedBlock uint64, direction Block
 		w.logger.Info("Block Sync: Initial sync done. Continuing to poll BFT RPC for the new blocks.")
 	}
 
-	for {
-		select {
-		case <-w.isClosing:
-			// no more new blocks
-			return
-		case <-w.isDone:
-			// no more new blocks
-			return
-		case block, ok := <-newBlocks:
-			if !ok {
+	// forward direction loop fetcing the next block and handling it,
+	// keeping the previous block for the next iteration.
+	if direction == BlockGetterDirectionForward {
+		var prevBlock *NewBlockData
+
+		for {
+			select {
+			case <-w.isClosing:
 				// no more new blocks
 				return
-			}
+			case <-w.isDone:
+				// no more new blocks
+				return
+			case nextBlock, ok := <-newBlocks:
+				if !ok {
+					// no more new blocks
+					return
+				} else if prevBlock == nil {
+					// no previous block for now, skip
+					prevBlock = &nextBlock
+					continue
+				}
 
-			if err := w.handleNewBlockData(block); err != nil {
-				if err == ErrShuttingDown {
+				if prevBlock.Block.Height != nextBlock.Block.Height-1 {
+					w.logger.Fatalf("sequentieal block height mismatch: %d != %d", prevBlock.Block.Height, nextBlock.Block.Height)
 					return
 				}
 
-				w.logger.WithError(err).Fatalf("failed to sync recent block, stopped at %d", w.LastSyncedBlock())
-				return
+				if err := w.handleNewBlockData(prevBlock, &nextBlock); err != nil {
+					if err == ErrShuttingDown {
+						return
+					}
+
+					w.logger.WithError(err).Fatalf("failed to sync recent block, stopped at %d", w.LastSyncedBlock())
+					return
+				}
+
+				// store the processed block for the next iteration
+				prevBlock = &nextBlock
 			}
 		}
 	}
+
+	if direction == BlockGetterDirectionBackward {
+		var nextBlock *NewBlockData
+
+		for {
+			select {
+			case <-w.isClosing:
+				// no more new blocks
+				return
+			case <-w.isDone:
+				// no more new blocks
+				return
+			case prevBlock, ok := <-newBlocks:
+				if !ok {
+					// no more new blocks
+					return
+				} else if nextBlock == nil {
+					// no previous block for now, skip
+					nextBlock = &prevBlock
+					continue
+				}
+
+				if prevBlock.Block.Height != nextBlock.Block.Height-1 {
+					w.logger.Fatalf("sequentieal block height mismatch: %d != %d", prevBlock.Block.Height, nextBlock.Block.Height)
+					return
+				}
+
+				if err := w.handleNewBlockData(&prevBlock, nextBlock); err != nil {
+					if err == ErrShuttingDown {
+						return
+					}
+
+					w.logger.WithError(err).Fatalf("failed to sync recent block, stopped at %d", w.LastSyncedBlock())
+					return
+				}
+
+				// store the non-processed block for the next iteration
+				nextBlock = &prevBlock
+			}
+		}
+	}
+
+	panic("unsupported direction")
 }
 
 var ErrShuttingDown = errors.New("shutting down")
@@ -242,13 +306,13 @@ const (
 	BlockGetterDirectionBackward BlockGetterDirection = "backward"
 )
 
-func (w *tmBlockWatcher) handleNewBlockData(data NewBlockData) (err error) {
-	if err = w.blockDataHandler(data); err != nil {
+func (w *tmBlockWatcher) handleNewBlockData(prevBlock, nextBlock *NewBlockData) (err error) {
+	if err = w.blockDataHandler(*prevBlock, *nextBlock); err != nil {
 		return err
 	}
 
 	w.latestSyncedBlockMux.Lock()
-	w.latestSyncedBlock = uint64(data.Block.Height)
+	w.latestSyncedBlock = uint64(nextBlock.Block.Height)
 	w.latestSyncedBlockMux.Unlock()
 
 	select {
@@ -256,9 +320,7 @@ func (w *tmBlockWatcher) handleNewBlockData(data NewBlockData) (err error) {
 		// this is the latest block handled before exit
 		close(w.isDone)
 
-		if err == nil {
-			err = ErrShuttingDown
-		}
+		err = ErrShuttingDown
 	default:
 	}
 
