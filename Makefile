@@ -26,6 +26,6 @@ cook-mb:
 	rsync -r ../coremon mb:~/go/src/
 
 cook-mb-ext:
-        rsync -r ../coremon mb-external:~/go/src/
+	rsync -r ../coremon mb-external:~/go/src/
 
-.PHONY: install image push cook cook-mb
+.PHONY: install image push cook cook-mb cook-mb-ext
