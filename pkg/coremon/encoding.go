@@ -7,6 +7,7 @@ import (
 
 	ctypes "github.com/InjectiveLabs/sdk-go/chain/types"
 	chainclient "github.com/InjectiveLabs/sdk-go/client/chain"
+	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 )
 
 var (
@@ -16,6 +17,10 @@ var (
 func init() {
 	setAccountPrefixes("inj")
 	chainCtx, _ := chainclient.NewClientContext("", "", nil)
+
+	interfaceRegistry := chainCtx.InterfaceRegistry
+	consensustypes.RegisterInterfaces(interfaceRegistry)
+
 	injectiveCdc = codec.NewProtoCodec(chainCtx.InterfaceRegistry)
 }
 
