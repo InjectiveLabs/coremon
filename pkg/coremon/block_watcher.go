@@ -17,7 +17,7 @@ import (
 )
 
 type TmBlockWatcher interface {
-	StartWatching(latestSyncedBlock uint64)
+	StartWatching(latestSyncedBlock uint64, direction BlockGetterDirection)
 	LastSyncedBlock() uint64
 	IsSynced() bool
 	WaitForSync()
@@ -174,7 +174,7 @@ func (w *tmBlockWatcher) runInitialSync(ctx context.Context, latestSyncedBlock u
 	return nil
 }
 
-func (w *tmBlockWatcher) StartWatching(latestSyncedBlock uint64) {
+func (w *tmBlockWatcher) StartWatching(latestSyncedBlock uint64, direction BlockGetterDirection) {
 	rewindTo := latestSyncedBlock
 
 	// initial sync: wait until getting up to chain height
@@ -188,7 +188,7 @@ func (w *tmBlockWatcher) StartWatching(latestSyncedBlock uint64) {
 		w.latestSyncedBlock = uint64(latestSyncedBlock) - 1
 	}
 
-	w.blockGetter = w.initBlockGetter(w.latestSyncedBlock+1, w.parallelBlockFetchJobs)
+	w.blockGetter = w.initBlockGetter(w.latestSyncedBlock+1, w.parallelBlockFetchJobs, direction)
 	w.latestSyncedBlockMux.Unlock()
 
 	newBlocks := w.blockGetter.NewBlockDataChan()
@@ -235,6 +235,13 @@ type NewBlockData struct {
 	BlockResults *ctypes.ResultBlockResults
 }
 
+type BlockGetterDirection string
+
+const (
+	BlockGetterDirectionForward  BlockGetterDirection = "forward"
+	BlockGetterDirectionBackward BlockGetterDirection = "backward"
+)
+
 func (w *tmBlockWatcher) handleNewBlockData(data NewBlockData) (err error) {
 	if err = w.blockDataHandler(data); err != nil {
 		return err
@@ -258,14 +265,19 @@ func (w *tmBlockWatcher) handleNewBlockData(data NewBlockData) (err error) {
 	return err
 }
 
-func (w *tmBlockWatcher) initBlockGetter(initHeight uint64, parallelJobs int) BlockGetter {
+func (w *tmBlockWatcher) initBlockGetter(
+	initHeight uint64,
+	parallelJobs int,
+	direction BlockGetterDirection,
+) BlockGetter {
 	getter := &blockGetter{
 		tmClient: w.tmClient,
 
-		jobs:    parallelJobs,
-		jobMux:  new(sync.RWMutex),
-		jobCond: sync.NewCond(new(sync.Mutex)),
-		height:  initHeight,
+		jobs:      parallelJobs,
+		jobMux:    new(sync.RWMutex),
+		jobCond:   sync.NewCond(new(sync.Mutex)),
+		height:    initHeight,
+		direction: direction,
 
 		newBlocksC:   make(chan NewBlockData, parallelJobs*100),
 		newBlocksMap: make(map[uint64]NewBlockData, parallelJobs*100),
@@ -285,10 +297,11 @@ func (w *tmBlockWatcher) initBlockGetter(initHeight uint64, parallelJobs int) Bl
 type blockGetter struct {
 	tmClient tmclient.TendermintClient
 
-	jobs    int
-	jobMux  *sync.RWMutex
-	jobCond *sync.Cond
-	height  uint64
+	jobs      int
+	jobMux    *sync.RWMutex
+	jobCond   *sync.Cond
+	height    uint64
+	direction BlockGetterDirection
 
 	newBlocksC   chan NewBlockData
 	newBlocksMap map[uint64]NewBlockData
@@ -299,6 +312,10 @@ type blockGetter struct {
 
 func (b *blockGetter) announceBlocks(startHeight uint64) {
 	height := startHeight
+
+	if b.direction == BlockGetterDirectionBackward {
+		height = startHeight - 1
+	}
 
 	for {
 		select {
@@ -328,7 +345,18 @@ func (b *blockGetter) announceBlocks(startHeight uint64) {
 
 			b.newBlocksC <- ev
 
-			height++
+			if b.direction == BlockGetterDirectionForward {
+				height++
+			} else if b.direction == BlockGetterDirectionBackward {
+				height--
+				if height == 0 {
+					b.logger.Warningln("Block Sync: Backward sync done. Reached 0 block height.")
+					return
+				}
+			} else {
+				b.logger.Fatalf("unsupported block getter direction: %s", b.direction)
+			}
+
 			continue
 		}
 	}
@@ -351,7 +379,14 @@ func (b *blockGetter) pullBlocks() {
 				defer b.jobMux.Unlock()
 
 				h := b.height
-				b.height++
+
+				if b.direction == BlockGetterDirectionForward {
+					b.height++
+				} else if b.direction == BlockGetterDirectionBackward {
+					b.height--
+				} else {
+					b.logger.Fatalf("unsupported block getter direction: %s", b.direction)
+				}
 
 				return h
 			}
@@ -379,23 +414,23 @@ func (b *blockGetter) pullBlocks() {
 						continue
 					}
 
-					var tooFarIntoFuture = false
+					var tooFarFromHead = false
 
 					b.jobCond.L.Lock()
 					b.newBlocksMap[height] = newBlock
 					b.jobCond.Signal()
 
 					if len(b.newBlocksMap) > 1024*b.jobs {
-						tooFarIntoFuture = true
+						tooFarFromHead = true
 					}
 					b.jobCond.L.Unlock()
 
 					// job sleeps until backlog is too high
-					for tooFarIntoFuture {
+					for tooFarFromHead {
 						time.Sleep(200 * time.Millisecond)
 
 						b.jobCond.L.Lock()
-						tooFarIntoFuture = len(b.newBlocksMap) > 1024*b.jobs
+						tooFarFromHead = len(b.newBlocksMap) > 1024*b.jobs
 						b.jobCond.L.Unlock()
 					}
 

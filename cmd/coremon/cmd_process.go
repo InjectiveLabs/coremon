@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	cosmtypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/std"
@@ -8,6 +10,7 @@ import (
 	influxdb2api "github.com/influxdata/influxdb-client-go/v2/api"
 	cli "github.com/jawher/mow.cli"
 	"github.com/xlab/closer"
+	log "github.com/xlab/suplog"
 
 	"github.com/InjectiveLabs/coremon/pkg/coremon"
 )
@@ -26,6 +29,7 @@ func processCmd(c *cli.Cmd) {
 
 		// args
 		rewindFromBlock *int
+		reverse         *bool
 	)
 
 	initCosmosOptions(
@@ -51,6 +55,7 @@ func processCmd(c *cli.Cmd) {
 	}
 
 	rewindFromBlock = c.IntArg("REWIND_FROM", 0, "Rewind from block - starts watching from this block in the past.")
+	reverse = c.BoolOpt("reverse", false, "Reverse the block fetching direction. If reverse, starts pulling historical blocks starting from the specified block.")
 
 	c.Action = func() {
 		defer closer.Close()
@@ -105,7 +110,24 @@ func processCmd(c *cli.Cmd) {
 			rewindFrom = 0
 		}
 
-		go blockWatcher.StartWatching(uint64(rewindFrom))
+		direction := coremon.BlockGetterDirectionForward
+		if *reverse {
+			direction = coremon.BlockGetterDirectionBackward
+
+			// log the mode active
+
+			startBlockDesc := "latest"
+			if rewindFrom > 0 {
+				startBlockDesc = fmt.Sprintf("%d", rewindFrom)
+			}
+
+			appLogger.WithFields(log.Fields{
+				"start_block": startBlockDesc,
+			}).Infoln("Pulling blocks in reverse direction.")
+
+		}
+
+		go blockWatcher.StartWatching(uint64(rewindFrom), direction)
 		closer.Bind(func() {
 			blockWatcher.Close()
 		})
