@@ -14,6 +14,7 @@ require (
 	github.com/jawher/mow.cli v1.2.0
 	github.com/minio/simdjson-go v0.4.5
 	github.com/pkg/errors v0.9.1
+	github.com/stretchr/testify v1.10.0
 	github.com/xlab/closer v1.1.0
 	github.com/xlab/pace v1.1.0
 	github.com/xlab/statsd_metrics v0.4.1
@@ -198,7 +199,7 @@ require (
 	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.19.0 // indirect
-	github.com/stretchr/testify v1.10.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/supranational/blst v0.3.11 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect

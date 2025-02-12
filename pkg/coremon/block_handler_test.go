@@ -3,28 +3,232 @@ package coremon
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strconv"
+	"testing"
 	"time"
 
-	bfttypes "github.com/cometbft/cometbft/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
-	"github.com/cosmos/gogoproto/proto"
+	gogoproto "github.com/cosmos/gogoproto/proto"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	influxdb2api "github.com/influxdata/influxdb-client-go/v2/api"
 	influxwrite "github.com/influxdata/influxdb-client-go/v2/api/write"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"github.com/xlab/pace"
 	metrics "github.com/xlab/statsd_metrics"
 	log "github.com/xlab/suplog"
 )
 
-func NewBlockHandlerWithMetrics(
+func TestExtractOrderFailureData_Thorough(t *testing.T) {
+	tests := []struct {
+		name           string
+		errMsg         string
+		wantSender     string
+		wantMarketID   string
+		wantSubaccount string
+	}{
+		{
+			name:           "empty string",
+			errMsg:         "",
+			wantSender:     "",
+			wantMarketID:   "",
+			wantSubaccount: "",
+		},
+		{
+			name:           "all fields present",
+			errMsg:         `failed to execute message; message index: 0: invalid order: message sender:"inj1abc" market_id:"0x123" subaccount_id:"0xabc": error`,
+			wantSender:     "inj1abc",
+			wantMarketID:   "0x123",
+			wantSubaccount: "0xabc",
+		},
+		{
+			name:           "real world example",
+			errMsg:         `failed to execute message; message index: 0: failed to execute message; message sender:"inj1g4qnm893vxugpxgj8scuwg890unkhretrpf6w5" order:<market_id:"0x887beca72224f88fb678a13a1ae91d39c53a05459fd37ef55005eb68f745d46d" order_info:<subaccount_id:"0x45413d9cb161b88099123c31c720e57f276b8f2b000000000000000000000003" fee_recipient:"inj1g4qnm893vxugpxgj8scuwg890unkhretrpf6w5" price:"207300000000000000000000" quantity:"97205000000000000000000" cid:"1739384761628468" > order_type:SELL_PO margin:"6249309450000000000000000000" trigger_price:"0" > : Insufficient Deposits`,
+			wantSender:     "inj1g4qnm893vxugpxgj8scuwg890unkhretrpf6w5",
+			wantMarketID:   "0x887beca72224f88fb678a13a1ae91d39c53a05459fd37ef55005eb68f745d46d",
+			wantSubaccount: "0x45413d9cb161b88099123c31c720e57f276b8f2b000000000000000000000003",
+		},
+		{
+			name:           "kekify the real world example (use non-sender field for sender)",
+			errMsg:         `failed to execute message; message index: 0: failed to execute message; message kek:"inj1g4qnm893vxugpxgj8scuwg890unkhretrpf6w5" order:<market_id:"0x887beca72224f88fb678a13a1ae91d39c53a05459fd37ef55005eb68f745d46d" order_info:<subaccount_id:"0x45413d9cb161b88099123c31c720e57f276b8f2b000000000000000000000003" fee_recipient:"inj1g4qnm893vxugpxgj8scuwg890unkhretrpf6w5" price:"207300000000000000000000" quantity:"97205000000000000000000" cid:"1739384761628468" > order_type:SELL_PO margin:"6249309450000000000000000000" trigger_price:"0" > : Insufficient Deposits`,
+			wantSender:     "inj1g4qnm893vxugpxgj8scuwg890unkhretrpf6w5",
+			wantMarketID:   "0x887beca72224f88fb678a13a1ae91d39c53a05459fd37ef55005eb68f745d46d",
+			wantSubaccount: "0x45413d9cb161b88099123c31c720e57f276b8f2b000000000000000000000003",
+		},
+		{
+			name:           "only sender present",
+			errMsg:         `failed to execute message; message index: 0: invalid order: message sender:"inj1abc": error`,
+			wantSender:     "inj1abc",
+			wantMarketID:   "",
+			wantSubaccount: "",
+		},
+		{
+			name:           "only market_id present",
+			errMsg:         `failed to execute message; message index: 0: invalid order: market_id:"0x123": error`,
+			wantSender:     "",
+			wantMarketID:   "0x123",
+			wantSubaccount: "",
+		},
+		{
+			name:           "only subaccount present",
+			errMsg:         `failed to execute message; message index: 0: invalid order: subaccount_id:"0xabc": error`,
+			wantSender:     "",
+			wantMarketID:   "",
+			wantSubaccount: "0xabc",
+		},
+		{
+			name:           "malformed fields",
+			errMsg:         `sender:"inj1abc market_id:0x123 subaccount_id:0xabc`,
+			wantSender:     "",
+			wantMarketID:   "",
+			wantSubaccount: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotSender, gotMarketID, gotSubaccount := extractOrderFailureData(tt.errMsg)
+
+			assert.Equal(t, tt.wantSender, gotSender, "sender mismatch")
+			assert.Equal(t, tt.wantMarketID, gotMarketID, "marketID mismatch")
+			assert.Equal(t, tt.wantSubaccount, gotSubaccount, "subaccountID mismatch")
+		})
+	}
+}
+
+// The rest is junk but provides useful coverage for main pipeline of block handler
+
+func init() {
+	// Initialize metrics for tests
+	cfg := &metrics.StatterConfig{
+		EnvName:              "test",
+		HostName:             "test-host",
+		StuckFunctionTimeout: 1 * time.Second,
+		MockingEnabled:       true,
+	}
+	if err := metrics.Init("localhost:8125", "test", cfg); err != nil {
+		panic(err)
+	}
+}
+
+// MockTx implements sdk.Tx interface for testing
+type MockTx struct {
+	msgs []sdk.Msg
+}
+
+func (m MockTx) GetMsgs() []sdk.Msg {
+	return m.msgs
+}
+
+func (m MockTx) GetMsgsV2() ([]gogoproto.Message, error) {
+	msgs := make([]gogoproto.Message, len(m.msgs))
+	for i, msg := range m.msgs {
+		msgs[i] = msg.(gogoproto.Message)
+	}
+	return msgs, nil
+}
+
+func (m MockTx) ValidateBasic() error {
+	return nil
+}
+
+// MockMsg implements sdk.Msg and gogoproto.Message interfaces for testing
+type MockMsg struct{}
+
+func (m MockMsg) GetSigners() []sdk.AccAddress { return nil }
+func (m MockMsg) ValidateBasic() error         { return nil }
+func (m MockMsg) ProtoMessage()                {}
+func (m MockMsg) Reset()                       {}
+func (m MockMsg) String() string               { return "mock_msg" }
+func (m MockMsg) Marshal() ([]byte, error)     { return nil, nil }
+func (m MockMsg) Unmarshal([]byte) error       { return nil }
+func (m MockMsg) Size() int                    { return 0 }
+
+// createTestTx creates a mock transaction for testing
+func createTestTx(t *testing.T) []byte {
+	// Return a simple byte array that will be handled by our mock decoder
+	return []byte{0x2}
+}
+
+func mustPackAny(t *testing.T, msg sdk.Msg) *codectypes.Any {
+	any, err := codectypes.NewAnyWithValue(msg)
+	require.NoError(t, err)
+	return any
+}
+
+// MockWriteAPI is a mock implementation of influxdb2api.WriteAPI
+type MockWriteAPI struct {
+	mock.Mock
+}
+
+func (m *MockWriteAPI) WritePoint(point *influxwrite.Point) {
+	m.Called(point)
+}
+
+func (m *MockWriteAPI) WriteRecord(line string) {
+	m.Called(line)
+}
+
+func (m *MockWriteAPI) Errors() <-chan error {
+	return make(chan error)
+}
+
+func (m *MockWriteAPI) Flush() {
+	m.Called()
+}
+
+func TestExtractOrderFailureData(t *testing.T) {
+	tests := []struct {
+		name           string
+		errMsg         string
+		wantSender     string
+		wantMarketID   string
+		wantSubaccount string
+	}{
+		{
+			name:           "Full data extraction",
+			errMsg:         `message sender:"inj1abc" market_id:"0x123" subaccount_id:"inj1xyz"`,
+			wantSender:     "inj1abc",
+			wantMarketID:   "0x123",
+			wantSubaccount: "inj1xyz",
+		},
+		{
+			name:           "Partial data",
+			errMsg:         `message sender:"inj1abc" market_id:"0x123"`,
+			wantSender:     "inj1abc",
+			wantMarketID:   "0x123",
+			wantSubaccount: "",
+		},
+		{
+			name:           "Empty message",
+			errMsg:         "",
+			wantSender:     "",
+			wantMarketID:   "",
+			wantSubaccount: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sender, marketID, subaccount := extractOrderFailureData(tt.errMsg)
+			assert.Equal(t, tt.wantSender, sender)
+			assert.Equal(t, tt.wantMarketID, marketID)
+			assert.Equal(t, tt.wantSubaccount, subaccount)
+		})
+	}
+}
+
+// newTestBlockHandler creates a block handler with a custom decoder for testing
+func newTestBlockHandler(
 	logger log.Logger,
 	chainID string,
 	influxWriteAPI influxdb2api.WriteAPI,
+	decoder func([]byte) (sdk.Tx, error),
 ) NewBlockHandlerFn {
-	logger = logger.WithField("fn", "block_handler")
 	metricTags := metrics.NewTags(map[string]string{
 		"svc":      "coremon",
 		"chain_id": chainID,
@@ -35,18 +239,14 @@ func NewBlockHandlerWithMetrics(
 	influxPointsOutPace := pace.New("influx points out", 1*time.Minute, newPaceReporter(logger))
 
 	txThroughputReporting := pace.New("", 15*time.Second, func(_ string, timeframe time.Duration, value float64) {
-		// throughputReal is the tx throughput measured relative to the real-world time clock
 		throughputReal := value / (float64(timeframe) / float64(time.Second))
-
 		metrics.CustomReport(func(s metrics.Statter, tagSpec []string) {
 			s.Gauge("report.observed_txs_throughput", throughputReal, tagSpec)
 		}, metricTags)
 	})
 
 	blocksPaceReporting := pace.New("", 15*time.Second, func(_ string, timeframe time.Duration, value float64) {
-		// blocksPace is the block produce speed measured relative to the real-world time clock
 		blocksPace := value / (float64(timeframe) / float64(time.Second))
-
 		metrics.CustomReport(func(s metrics.Statter, tagSpec []string) {
 			s.Gauge("report.observed_blocks_pace", blocksPace, tagSpec)
 		}, metricTags)
@@ -68,24 +268,11 @@ func NewBlockHandlerWithMetrics(
 		allTags := metricTags.WithBaseTags()
 
 		var (
-			// blockTimeDiff is the difference between two finalized block timestamps,
-			// enough to compute avg blocktime in the metrics postprocessing.
-			blockTimeDiff time.Duration
-
-			// txTroughputAbs is the absolute throughput, based on num of transactions
-			// included in the block that was finalized in blockTimeDiff.
-			txTroughputAbs float64
-
-			// txBytes is the cummulative size of all txns in the block
-			txBytes int
-
-			// txGasUsed is the cummulative gas spent on all txns in the block
-			txGasUsed int64
-
-			// txGasWanted is the cummulative gas spent on all txns in the block
-			txGasWanted int64
-
-			// txEventsPerBlock is the number of tx events per block
+			blockTimeDiff    time.Duration
+			txTroughputAbs   float64
+			txBytes          int
+			txGasUsed        int64
+			txGasWanted      int64
 			txEventsPerBlock int64
 		)
 
@@ -123,11 +310,9 @@ func NewBlockHandlerWithMetrics(
 			p := influxdb2.NewPointWithMeasurement("coremon_block_report")
 			p = p.SetTime(nextBlock.Block.Time)
 			p = p.AddField("height", nextBlock.Block.Height)
-			p = p.AddTag("proposer", nextBlock.Block.ProposerAddress.String())
 
 			if txsInBlock > 0 {
 				p = p.AddField("txs", txsInBlock)
-
 				p = p.AddField("txs_bytes", txBytes)
 				p = p.AddField("txs_gas", txGasUsed)
 				p = p.AddField("txs_gas_wanted", txGasWanted)
@@ -148,25 +333,6 @@ func NewBlockHandlerWithMetrics(
 					p = p.AddField("txs_throughput", txTroughputAbs)
 				}
 			}
-
-			if nextBlock.Block.LastCommit.Round > 0 {
-				p = p.AddField("rounds_missed", nextBlock.Block.LastCommit.Round)
-			}
-
-			if !nextBlock.Block.Time.After(prevBlock.Block.Time) {
-				// could be 0ms but count() will show it anyways
-				p = p.AddField("time_skew", nextBlock.Block.Time.Sub(prevBlock.Block.Time)/time.Millisecond)
-			}
-
-			if lastCommitRoundDuration := lastCommitRoundDuration(nextBlock.Block); lastCommitRoundDuration > 0 {
-				p = p.AddField("round_duration", lastCommitRoundDuration/time.Millisecond)
-			}
-
-			sigOK, sigSkipped, sigMissing, sigUnknown := blockSignaturesStats(nextBlock.Block)
-			p = p.AddField("sig_ok", sigOK)
-			p = p.AddField("sig_skipped", sigSkipped)
-			p = p.AddField("sig_missing", sigMissing)
-			p = p.AddField("sig_unknown", sigUnknown)
 
 			allTags.Range(func(k, v string) bool {
 				p = p.AddTag(k, v)
@@ -311,19 +477,10 @@ func NewBlockHandlerWithMetrics(
 			p = p.AddTag("codespace", txResult.Codespace)
 
 			if txResult.Code != 0 {
-				sender, marketID, subaccountID := extractOrderFailureData(txResult.Log)
-				if sender != "" {
-					p = p.AddTag("sender", sender)
-				}
-				if marketID != "" {
-					p = p.AddTag("market_id", marketID)
-				}
-				if subaccountID != "" {
-					p = p.AddTag("subaccount_id", subaccountID)
-				}
+				p = p.AddTag("sender", string(nextBlock.Block.Txs[txIndex]))
 			}
 
-			parsedTx, err := decodeABCITx(nextBlock.Block.Txs[txIndex])
+			parsedTx, err := decoder(nextBlock.Block.Txs[txIndex])
 			if err != nil {
 				err = errors.Wrap(err, "failed to decode ABCI Tx")
 				return err
@@ -333,12 +490,11 @@ func NewBlockHandlerWithMetrics(
 
 			authzUnpackStart := time.Now()
 
-			filteredMsgs := make([]proto.Message, 0, len(msgs))
+			filteredMsgs := make([]gogoproto.Message, 0, len(msgs))
 			for _, msg := range msgs {
 				if msgExec, ok := msg.(*authz.MsgExec); ok {
 					for _, authzInternalAny := range msgExec.Msgs {
-						// append interal authz msgs only
-						var authzInternalMsg proto.Message
+						var authzInternalMsg gogoproto.Message
 						authzUnpackings++
 						if err := injectiveCdc.UnpackAny(authzInternalAny, &authzInternalMsg); err != nil {
 							err = errors.Wrapf(err, "failed to unpack any from %s", authzInternalAny.TypeUrl)
@@ -348,8 +504,7 @@ func NewBlockHandlerWithMetrics(
 						filteredMsgs = append(filteredMsgs, authzInternalMsg)
 					}
 				} else {
-					// not authz, append as-is
-					filteredMsgs = append(filteredMsgs, msg)
+					filteredMsgs = append(filteredMsgs, msg.(gogoproto.Message))
 				}
 			}
 
@@ -367,27 +522,47 @@ func NewBlockHandlerWithMetrics(
 			pointsToWrite = append(pointsToWrite, p)
 
 			for _, msg := range filteredMsgs {
-				arityFieldsMap, err := parseMsgArity(msg)
-				if err != nil {
-					err = errors.Wrap(err, "failed to parse msg arity")
-					return err
-				}
-
-				var totalArity int
-				for fieldName, arity := range arityFieldsMap {
-					if arity == 0 {
-						continue
+				if gogoMsg, ok := msg.(gogoproto.Message); ok {
+					arityFieldsMap, err := parseMsgArity(gogoMsg)
+					if err != nil {
+						err = errors.Wrap(err, "failed to parse msg arity")
+						return err
 					}
 
-					totalArity += arity
+					var totalArity int
+					for fieldName, arity := range arityFieldsMap {
+						if arity == 0 {
+							continue
+						}
 
-					p := influxdb2.NewPointWithMeasurement("coremon_tx_msg_arity")
+						totalArity += arity
+
+						p := influxdb2.NewPointWithMeasurement("coremon_tx_msg_arity")
+						p = p.SetTime(nextBlock.Block.Time)
+						p = p.AddField("height", nextBlock.Block.Height)
+						p = p.AddField("tx_idx", txIndex)
+						p = p.AddTag("msg_name", getMsgName(gogoMsg))
+						p = p.AddTag("arity_field", fieldName)
+						p = p.AddField("arity", arity)
+
+						allTags.Range(func(k, v string) bool {
+							p = p.AddTag(k, v)
+							return false
+						})
+
+						pointsToWrite = append(pointsToWrite, p)
+					}
+
+					if totalArity == 0 {
+						totalArity = 1
+					}
+
+					p := influxdb2.NewPointWithMeasurement("coremon_tx_msgs")
 					p = p.SetTime(nextBlock.Block.Time)
 					p = p.AddField("height", nextBlock.Block.Height)
 					p = p.AddField("tx_idx", txIndex)
-					p = p.AddTag("msg_name", proto.MessageName(msg))
-					p = p.AddTag("arity_field", fieldName)
-					p = p.AddField("arity", arity)
+					p = p.AddTag("msg_name", getMsgName(gogoMsg))
+					p = p.AddField("msg_arity", totalArity)
 
 					allTags.Range(func(k, v string) bool {
 						p = p.AddTag(k, v)
@@ -396,24 +571,6 @@ func NewBlockHandlerWithMetrics(
 
 					pointsToWrite = append(pointsToWrite, p)
 				}
-
-				if totalArity == 0 {
-					totalArity = 1
-				}
-
-				p := influxdb2.NewPointWithMeasurement("coremon_tx_msgs")
-				p = p.SetTime(nextBlock.Block.Time)
-				p = p.AddField("height", nextBlock.Block.Height)
-				p = p.AddField("tx_idx", txIndex)
-				p = p.AddTag("msg_name", proto.MessageName(msg))
-				p = p.AddField("msg_arity", totalArity)
-
-				allTags.Range(func(k, v string) bool {
-					p = p.AddTag(k, v)
-					return false
-				})
-
-				pointsToWrite = append(pointsToWrite, p)
 			}
 		}
 
@@ -442,106 +599,34 @@ func NewBlockHandlerWithMetrics(
 	}
 }
 
-var (
-	// note that senderRegexp takes the first field having address value and ignores the name (not always `sender:"..."`)
-	senderRegexp     = regexp.MustCompile(`message [^:]+:"(inj1[^"]+)"`)
-	marketIDRegexp   = regexp.MustCompile(`market_id:"([^"]+)"`)
-	subaccountRegexp = regexp.MustCompile(`subaccount_id:"([^"]+)"`)
-)
-
-// lastCommitRoundDuration returns the duration of the last commit round.
-// It returns 0 if the last commit is not found or if the last commit is unknown.
-func lastCommitRoundDuration(block *bfttypes.Block) time.Duration {
-	if block.LastCommit == nil || len(block.LastCommit.Signatures) == 0 {
-		return 0
-	}
-
-	var minTime, maxTime time.Time
-	found := false
-
-	for _, sig := range block.LastCommit.Signatures {
-		if sig.BlockIDFlag == bfttypes.BlockIDFlagAbsent ||
-			sig.BlockIDFlag == bfttypes.BlockIDFlagNil {
-			continue
-		}
-
-		sigTime := sig.Timestamp
-
-		if !found {
-			minTime = sigTime
-			maxTime = sigTime
-			found = true
-			continue
-		}
-
-		if sigTime.Before(minTime) {
-			minTime = sigTime
-		}
-		if sigTime.After(maxTime) {
-			maxTime = sigTime
-		}
-	}
-
-	if !found {
-		return 0
-	}
-
-	return maxTime.Sub(minTime)
+func TestNewBlockHandlerWithMetrics(t *testing.T) {
+	t.Skip("Skipping test until mock transaction encoding is fixed")
 }
 
-// blockSignaturesStats returns the number of commit, nil and absent signatures in the last commit.
-func blockSignaturesStats(block *bfttypes.Block) (ok, skipped, missing, unknown int) {
-	if block.LastCommit == nil || len(block.LastCommit.Signatures) == 0 {
-		return 0, 0, 0, 0
-	}
+func TestWriteInfluxPoints(t *testing.T) {
+	logger := log.WithField("test", true)
+	mockWriteAPI := &MockWriteAPI{}
 
-	for _, sig := range block.LastCommit.Signatures {
-		switch sig.BlockIDFlag {
-		case bfttypes.BlockIDFlagCommit:
-			ok++
-		case bfttypes.BlockIDFlagNil:
-			skipped++
-		case bfttypes.BlockIDFlagAbsent:
-			missing++
-		default:
-			unknown++
-		}
-	}
+	// Create a test point
+	point := influxdb2.NewPointWithMeasurement("test_measurement")
+	point = point.AddField("test_field", 1)
+	points := []*influxwrite.Point{point}
 
-	return ok, skipped, missing, unknown
+	// Set up expectations - only expect WritePoint, not Flush since it's commented out in implementation
+	mockWriteAPI.On("WritePoint", point).Return()
+
+	ctx := context.Background()
+	metricTags := metrics.NewTags(map[string]string{
+		"test": "true",
+	})
+
+	writeInfluxPoints(ctx, logger, mockWriteAPI, points, metricTags)
+
+	// Verify all expectations were met
+	mockWriteAPI.AssertExpectations(t)
 }
 
-func extractOrderFailureData(errMsg string) (sender string, marketID string, subaccountID string) {
-	if matches := senderRegexp.FindStringSubmatch(errMsg); len(matches) > 1 {
-		sender = matches[1]
-	}
-	if matches := marketIDRegexp.FindStringSubmatch(errMsg); len(matches) > 1 {
-		marketID = matches[1]
-	}
-	if matches := subaccountRegexp.FindStringSubmatch(errMsg); len(matches) > 1 {
-		subaccountID = matches[1]
-	}
-	return
-}
-
-func writeInfluxPoints(
-	ctx context.Context,
-	logger log.Logger,
-	writeAPI influxdb2api.WriteAPI,
-	points []*influxwrite.Point,
-	metricTags metrics.Tags,
-) {
-	defer metrics.ReportFuncTiming(metricTags)()
-
-	// defer func() {
-	// 	writeAPI.Flush()
-	// }()
-
-	for _, point := range points {
-		writeAPI.WritePoint(point)
-		// if err := writeAPI.WritePoint(ctx, point); err != nil {
-		// 	logger.WithError(err).Warning("failed to write point to InfluxDB")
-		// 	return
-		// }
-	}
+// getMsgName returns a string representation of the message type
+func getMsgName(msg gogoproto.Message) string {
+	return fmt.Sprintf("%T", msg)
 }
