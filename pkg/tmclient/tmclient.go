@@ -15,6 +15,7 @@ type TendermintClient interface {
 	GetBlock(ctx context.Context, height int64) (*tmctypes.ResultBlock, error)
 	GetLatestBlockHeight(ctx context.Context) (int64, time.Time, error)
 	GetBlockResults(ctx context.Context, height int64) (*ctypes.ResultBlockResults, error)
+	GetValidators(ctx context.Context, height int64) (*ctypes.ResultValidators, error)
 }
 
 type tmClient struct {
@@ -53,4 +54,14 @@ func (c *tmClient) GetLatestBlockHeight(ctx context.Context) (int64, time.Time, 
 	height := status.SyncInfo.LatestBlockHeight
 
 	return height, status.SyncInfo.LatestBlockTime, nil
+}
+
+func (c *tmClient) GetValidators(ctx context.Context, height int64) (*ctypes.ResultValidators, error) {
+	perPage := 200
+	validators, err := c.rpcClient.Validators(ctx, &height, nil, &perPage)
+	if err != nil {
+		return nil, err
+	}
+
+	return validators, nil
 }

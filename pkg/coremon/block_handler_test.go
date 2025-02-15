@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	bfttypes "github.com/cometbft/cometbft/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
@@ -629,4 +630,514 @@ func TestWriteInfluxPoints(t *testing.T) {
 // getMsgName returns a string representation of the message type
 func getMsgName(msg gogoproto.Message) string {
 	return fmt.Sprintf("%T", msg)
+}
+
+func TestComputeSortedValidatorSigs(t *testing.T) {
+	baseTime := time.Now()
+
+	tests := []struct {
+		name  string
+		block *bfttypes.Block
+		want  []ValidtatorSigSortable
+	}{
+		{
+			name: "nil block",
+			block: &bfttypes.Block{
+				LastCommit: nil,
+			},
+			want: nil,
+		},
+		{
+			name: "empty signatures",
+			block: &bfttypes.Block{
+				LastCommit: &bfttypes.Commit{
+					Signatures: []bfttypes.CommitSig{},
+				},
+			},
+			want: nil,
+		},
+		{
+			name: "already sorted signatures",
+			block: &bfttypes.Block{
+				LastCommit: &bfttypes.Commit{
+					Signatures: []bfttypes.CommitSig{
+						{
+							Timestamp:        baseTime,
+							ValidatorAddress: []byte("val1"),
+							BlockIDFlag:      bfttypes.BlockIDFlagCommit,
+						},
+						{
+							Timestamp:        baseTime.Add(1 * time.Second),
+							ValidatorAddress: []byte("val2"),
+							BlockIDFlag:      bfttypes.BlockIDFlagCommit,
+						},
+						{
+							Timestamp:        baseTime.Add(2 * time.Second),
+							ValidatorAddress: []byte("val3"),
+							BlockIDFlag:      bfttypes.BlockIDFlagCommit,
+						},
+					},
+				},
+			},
+			want: []ValidtatorSigSortable{
+				{
+					Timestamp: baseTime,
+					Address:   "76616C31", // hex encoding of "val1"
+				},
+				{
+					Timestamp: baseTime.Add(1 * time.Second),
+					Address:   "76616C32", // hex encoding of "val2"
+				},
+				{
+					Timestamp: baseTime.Add(2 * time.Second),
+					Address:   "76616C33", // hex encoding of "val3"
+				},
+			},
+		},
+		{
+			name: "unsorted signatures",
+			block: &bfttypes.Block{
+				LastCommit: &bfttypes.Commit{
+					Signatures: []bfttypes.CommitSig{
+						{
+							Timestamp:        baseTime.Add(2 * time.Second),
+							ValidatorAddress: []byte("val3"),
+							BlockIDFlag:      bfttypes.BlockIDFlagCommit,
+						},
+						{
+							Timestamp:        baseTime,
+							ValidatorAddress: []byte("val1"),
+							BlockIDFlag:      bfttypes.BlockIDFlagCommit,
+						},
+						{
+							Timestamp:        baseTime.Add(1 * time.Second),
+							ValidatorAddress: []byte("val2"),
+							BlockIDFlag:      bfttypes.BlockIDFlagCommit,
+						},
+					},
+				},
+			},
+			want: []ValidtatorSigSortable{
+				{
+					Timestamp: baseTime,
+					Address:   "76616C31", // hex encoding of "val1"
+				},
+				{
+					Timestamp: baseTime.Add(1 * time.Second),
+					Address:   "76616C32", // hex encoding of "val2"
+				},
+				{
+					Timestamp: baseTime.Add(2 * time.Second),
+					Address:   "76616C33", // hex encoding of "val3"
+				},
+			},
+		},
+		{
+			name: "skip nil and absent signatures",
+			block: &bfttypes.Block{
+				LastCommit: &bfttypes.Commit{
+					Signatures: []bfttypes.CommitSig{
+						{
+							Timestamp:        baseTime,
+							ValidatorAddress: []byte("val1"),
+							BlockIDFlag:      bfttypes.BlockIDFlagCommit,
+						},
+						{
+							Timestamp:        baseTime,
+							ValidatorAddress: []byte("val2"),
+							BlockIDFlag:      bfttypes.BlockIDFlagNil,
+						},
+						{
+							Timestamp:        baseTime,
+							ValidatorAddress: []byte("val3"),
+							BlockIDFlag:      bfttypes.BlockIDFlagAbsent,
+						},
+						{
+							Timestamp:        baseTime.Add(1 * time.Second),
+							ValidatorAddress: []byte("val4"),
+							BlockIDFlag:      bfttypes.BlockIDFlagCommit,
+						},
+					},
+				},
+			},
+			want: []ValidtatorSigSortable{
+				{
+					Timestamp: baseTime,
+					Address:   "76616C31", // hex encoding of "val1"
+				},
+				{
+					Timestamp: baseTime.Add(1 * time.Second),
+					Address:   "76616C34", // hex encoding of "val4"
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := computeSortedValidatorSigs(tt.block)
+			require.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestComputeRelativeDelays(t *testing.T) {
+	baseTime := time.Now()
+
+	tests := []struct {
+		name       string
+		sortedSigs []ValidtatorSigSortable
+		want       map[string]time.Duration
+	}{
+		{
+			name:       "nil signatures",
+			sortedSigs: nil,
+			want:       nil,
+		},
+		{
+			name:       "empty signatures",
+			sortedSigs: []ValidtatorSigSortable{},
+			want:       nil,
+		},
+		{
+			name: "single signature",
+			sortedSigs: []ValidtatorSigSortable{
+				{
+					Timestamp: baseTime,
+					Address:   "76616C31", // hex encoding of "val1"
+				},
+			},
+			want: map[string]time.Duration{
+				"76616C31": 0,
+			},
+		},
+		{
+			name: "multiple signatures",
+			sortedSigs: []ValidtatorSigSortable{
+				{
+					Timestamp: baseTime,
+					Address:   "76616C31", // hex encoding of "val1"
+				},
+				{
+					Timestamp: baseTime.Add(1 * time.Second),
+					Address:   "76616C32", // hex encoding of "val2"
+				},
+				{
+					Timestamp: baseTime.Add(2 * time.Second),
+					Address:   "76616C33", // hex encoding of "val3"
+				},
+			},
+			want: map[string]time.Duration{
+				"76616C31": 0,
+				"76616C32": 1 * time.Second,
+				"76616C33": 2 * time.Second,
+			},
+		},
+		{
+			name: "same timestamp signatures",
+			sortedSigs: []ValidtatorSigSortable{
+				{
+					Timestamp: baseTime,
+					Address:   "76616C31", // hex encoding of "val1"
+				},
+				{
+					Timestamp: baseTime,
+					Address:   "76616C32", // hex encoding of "val2"
+				},
+				{
+					Timestamp: baseTime,
+					Address:   "76616C33", // hex encoding of "val3"
+				},
+			},
+			want: map[string]time.Duration{
+				"76616C31": 0,
+				"76616C32": 0,
+				"76616C33": 0,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := computeRelativeDelays(tt.sortedSigs)
+			require.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestComputeStdDevOfDelays(t *testing.T) {
+	tests := []struct {
+		name   string
+		delays map[string]time.Duration
+		want   float64
+	}{
+		{
+			name:   "nil delays",
+			delays: nil,
+			want:   0,
+		},
+		{
+			name:   "empty delays",
+			delays: map[string]time.Duration{},
+			want:   0,
+		},
+		{
+			name: "single delay",
+			delays: map[string]time.Duration{
+				"76616C31": 1 * time.Second,
+			},
+			want: 0,
+		},
+		{
+			name: "multiple delays",
+			delays: map[string]time.Duration{
+				"76616C31": 0,
+				"76616C32": 1 * time.Second,
+				"76616C33": 2 * time.Second,
+			},
+			want: 500, // standard deviation in milliseconds
+		},
+		{
+			name: "same delays",
+			delays: map[string]time.Duration{
+				"76616C31": 1 * time.Second,
+				"76616C32": 1 * time.Second,
+				"76616C33": 1 * time.Second,
+			},
+			want: 0,
+		},
+		{
+			name: "ignore zero delays",
+			delays: map[string]time.Duration{
+				"76616C31": 0,
+				"76616C32": 1 * time.Second,
+				"76616C33": 2 * time.Second,
+				"76616C34": 0,
+			},
+			want: 500, // standard deviation in milliseconds
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := computeStdDevOfDelays(tt.delays)
+			require.InDelta(t, tt.want, got, 0.0001)
+		})
+	}
+}
+
+func TestComputeStdDevDistance(t *testing.T) {
+	tests := []struct {
+		name      string
+		value     time.Duration
+		stdDev    float64
+		allValues map[string]time.Duration
+		want      float64
+	}{
+		{
+			name:   "zero standard deviation",
+			value:  1 * time.Second,
+			stdDev: 0,
+			allValues: map[string]time.Duration{
+				"76616C31": 1 * time.Second,
+				"76616C32": 1 * time.Second,
+			},
+			want: 0,
+		},
+		{
+			name:   "typical case",
+			value:  2 * time.Second,
+			stdDev: 500,
+			allValues: map[string]time.Duration{
+				"76616C31": 0,
+				"76616C32": 1 * time.Second,
+				"76616C33": 2 * time.Second,
+			},
+			want: 1,
+		},
+		{
+			name:   "negative distance",
+			value:  0,
+			stdDev: 500,
+			allValues: map[string]time.Duration{
+				"76616C31": 0,
+				"76616C32": 1 * time.Second,
+				"76616C33": 2 * time.Second,
+			},
+			want: -3,
+		},
+		{
+			name:   "ignore zero values in mean calculation",
+			value:  1 * time.Second,
+			stdDev: 500,
+			allValues: map[string]time.Duration{
+				"76616C31": 0,
+				"76616C32": 1 * time.Second,
+				"76616C33": 2 * time.Second,
+				"76616C34": 0,
+			},
+			want: -1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := computeStdDevDistance(tt.value, tt.stdDev, tt.allValues)
+			require.InDelta(t, tt.want, got, 0.0001)
+		})
+	}
+}
+
+func TestLastCommitMetrics(t *testing.T) {
+	baseTime := time.Now()
+
+	tests := []struct {
+		name      string
+		block     *bfttypes.Block
+		activeSet map[string]ActiveSetValidator
+		want      map[string]LastCommitMetricsPerValidator
+	}{
+		{
+			name: "nil block",
+			block: &bfttypes.Block{
+				LastCommit: nil,
+			},
+			activeSet: nil,
+			want:      nil,
+		},
+		{
+			name: "empty signatures",
+			block: &bfttypes.Block{
+				LastCommit: &bfttypes.Commit{
+					Signatures: []bfttypes.CommitSig{},
+				},
+			},
+			activeSet: nil,
+			want:      nil,
+		},
+		{
+			name: "typical case with proposer",
+			block: &bfttypes.Block{
+				Header: bfttypes.Header{
+					ProposerAddress: []byte("val1"),
+				},
+				LastCommit: &bfttypes.Commit{
+					Signatures: []bfttypes.CommitSig{
+						{
+							Timestamp:        baseTime,
+							ValidatorAddress: []byte("val1"),
+							BlockIDFlag:      bfttypes.BlockIDFlagCommit,
+						},
+						{
+							Timestamp:        baseTime.Add(1 * time.Second),
+							ValidatorAddress: []byte("val2"),
+							BlockIDFlag:      bfttypes.BlockIDFlagCommit,
+						},
+						{
+							Timestamp:        baseTime.Add(2 * time.Second),
+							ValidatorAddress: []byte("val3"),
+							BlockIDFlag:      bfttypes.BlockIDFlagCommit,
+						},
+					},
+				},
+			},
+			activeSet: map[string]ActiveSetValidator{
+				"76616C31": {Shares: 100, Priority: 1},
+				"76616C32": {Shares: 100, Priority: 2},
+				"76616C33": {Shares: 100, Priority: 3},
+			},
+			want: map[string]LastCommitMetricsPerValidator{
+				"76616C31": {
+					Timestamp:      baseTime,
+					Status:         bfttypes.BlockIDFlagCommit,
+					RelativeDelay:  0,
+					StdDevDistance: -3,
+					ProposerDelay:  ptr(time.Duration(-1 * time.Second)),
+					ReactionTime:   0,
+				},
+				"76616C32": {
+					Timestamp:      baseTime.Add(1 * time.Second),
+					Status:         bfttypes.BlockIDFlagCommit,
+					RelativeDelay:  1 * time.Second,
+					StdDevDistance: -1,
+					ReactionTime:   0,
+				},
+				"76616C33": {
+					Timestamp:      baseTime.Add(2 * time.Second),
+					Status:         bfttypes.BlockIDFlagCommit,
+					RelativeDelay:  2 * time.Second,
+					StdDevDistance: 1,
+					ReactionTime:   1 * time.Second,
+				},
+			},
+		},
+		{
+			name: "non-proposer signs first",
+			block: &bfttypes.Block{
+				Header: bfttypes.Header{
+					ProposerAddress: []byte("val1"),
+				},
+				LastCommit: &bfttypes.Commit{
+					Signatures: []bfttypes.CommitSig{
+						{
+							Timestamp:        baseTime,
+							ValidatorAddress: []byte("val2"),
+							BlockIDFlag:      bfttypes.BlockIDFlagCommit,
+						},
+						{
+							Timestamp:        baseTime.Add(1 * time.Second),
+							ValidatorAddress: []byte("val1"),
+							BlockIDFlag:      bfttypes.BlockIDFlagCommit,
+						},
+						{
+							Timestamp:        baseTime.Add(2 * time.Second),
+							ValidatorAddress: []byte("val3"),
+							BlockIDFlag:      bfttypes.BlockIDFlagCommit,
+						},
+					},
+				},
+			},
+			activeSet: map[string]ActiveSetValidator{
+				"76616C31": {Shares: 100, Priority: 1},
+				"76616C32": {Shares: 100, Priority: 2},
+				"76616C33": {Shares: 100, Priority: 3},
+			},
+			want: map[string]LastCommitMetricsPerValidator{
+				"76616C31": {
+					Timestamp:      baseTime.Add(1 * time.Second),
+					Status:         bfttypes.BlockIDFlagCommit,
+					RelativeDelay:  1 * time.Second,
+					StdDevDistance: -1,
+					ProposerDelay:  ptr(time.Duration(1 * time.Second)),
+					ReactionTime:   0,
+				},
+				"76616C32": {
+					Timestamp:      baseTime,
+					Status:         bfttypes.BlockIDFlagCommit,
+					RelativeDelay:  0,
+					StdDevDistance: -3,
+					ReactionTime:   0,
+				},
+				"76616C33": {
+					Timestamp:      baseTime.Add(2 * time.Second),
+					Status:         bfttypes.BlockIDFlagCommit,
+					RelativeDelay:  2 * time.Second,
+					StdDevDistance: 1,
+					ReactionTime:   2 * time.Second,
+				},
+			},
+		},
+	}
+
+	for idx, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := lastCommitMetrics(tt.block, tt.activeSet)
+			require.Equal(t, tt.want, got, "[idx %04d] want: %v, got: %v", idx, tt.want, got)
+		})
+	}
+}
+
+// Helper function to create duration pointer
+func ptr(d time.Duration) *time.Duration {
+	return &d
 }

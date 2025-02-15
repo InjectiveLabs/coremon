@@ -3,7 +3,9 @@ package coremon
 import (
 	"context"
 	"fmt"
+	"math"
 	"regexp"
+	"sort"
 	"strconv"
 	"time"
 
@@ -104,6 +106,17 @@ func NewBlockHandlerWithMetrics(
 			}
 		}
 
+		activeSet := make(map[string]ActiveSetValidator, len(nextBlock.ActiveSet))
+		for _, validator := range nextBlock.ActiveSet {
+			activeSet[validator.Address.String()] = ActiveSetValidator{
+				Address:  validator.Address.String(),
+				Shares:   float64(validator.VotingPower),
+				Priority: validator.ProposerPriority,
+			}
+		}
+
+		lastCommitSigs, stdDev := lastCommitMetrics(nextBlock.Block, activeSet)
+
 		newBlockHandlerPace.StepN(1)
 		blocksPaceReporting.StepN(1)
 		txsInBlocksPace.StepN(txsInBlock)
@@ -123,7 +136,7 @@ func NewBlockHandlerWithMetrics(
 			p := influxdb2.NewPointWithMeasurement("coremon_block_report")
 			p = p.SetTime(nextBlock.Block.Time)
 			p = p.AddField("height", nextBlock.Block.Height)
-			p = p.AddTag("proposer", nextBlock.Block.ProposerAddress.String())
+			p = p.AddTag("proposer", nextBlock.Block.Header.ProposerAddress.String())
 
 			if txsInBlock > 0 {
 				p = p.AddField("txs", txsInBlock)
@@ -141,7 +154,7 @@ func NewBlockHandlerWithMetrics(
 				p = p.AddField("block_events", blockEvents)
 			}
 
-			if blockTimeDiff > 0 {
+			if blockTimeDiff != 0 {
 				p = p.AddField("time_diff", float64(blockTimeDiff)/float64(time.Millisecond))
 
 				if txTroughputAbs > 0 {
@@ -155,18 +168,41 @@ func NewBlockHandlerWithMetrics(
 
 			if !nextBlock.Block.Time.After(prevBlock.Block.Time) {
 				// could be 0ms but count() will show it anyways
-				p = p.AddField("time_skew", nextBlock.Block.Time.Sub(prevBlock.Block.Time)/time.Millisecond)
+				p = p.AddField("time_skew", float64(nextBlock.Block.Time.Sub(prevBlock.Block.Time))/float64(time.Millisecond))
 			}
 
 			if lastCommitRoundDuration := lastCommitRoundDuration(nextBlock.Block); lastCommitRoundDuration > 0 {
-				p = p.AddField("round_duration", lastCommitRoundDuration/time.Millisecond)
+				p = p.AddField("round_dur", float64(lastCommitRoundDuration)/float64(time.Millisecond))
 			}
 
-			sigOK, sigSkipped, sigMissing, sigUnknown := blockSignaturesStats(nextBlock.Block)
-			p = p.AddField("sig_ok", sigOK)
-			p = p.AddField("sig_skipped", sigSkipped)
-			p = p.AddField("sig_missing", sigMissing)
-			p = p.AddField("sig_unknown", sigUnknown)
+			sigOK, sigSkipped, sigMissing := blockSignaturesStats(nextBlock.Block)
+
+			if sigOK > 0 {
+				p = p.AddField("sig_ok", sigOK)
+				if len(nextBlock.ActiveSet) > 0 {
+					p = p.AddField("sig_ok_pct", float64(sigOK)/float64(len(nextBlock.ActiveSet)))
+				}
+			}
+
+			if sigSkipped > 0 {
+				p = p.AddField("sig_skipped", sigSkipped)
+
+				if len(nextBlock.ActiveSet) > 0 {
+					p = p.AddField("sig_skipped_pct", float64(sigSkipped)/float64(len(nextBlock.ActiveSet)))
+				}
+			}
+
+			if sigMissing > 0 {
+				p = p.AddField("sig_missing", sigMissing)
+
+				if len(nextBlock.ActiveSet) > 0 {
+					p = p.AddField("sig_missing_pct", float64(sigMissing)/float64(len(nextBlock.ActiveSet)))
+				}
+			}
+
+			if stdDev > 0 {
+				p = p.AddField("sig_time_std_dev", stdDev)
+			}
 
 			allTags.Range(func(k, v string) bool {
 				p = p.AddTag(k, v)
@@ -174,6 +210,63 @@ func NewBlockHandlerWithMetrics(
 			})
 
 			pointsToWrite = append(pointsToWrite, p)
+		}
+
+		{
+			for validatorAddress, validatorMetrics := range lastCommitSigs {
+				p := influxdb2.NewPointWithMeasurement("coremon_validator_report")
+				p = p.SetTime(nextBlock.Block.Time)
+				p = p.AddField("height", nextBlock.Block.Height)
+				p = p.AddTag("validator", validatorAddress)
+
+				switch validatorMetrics.Status {
+				case bfttypes.BlockIDFlagCommit:
+					p = p.AddField("sig_ok", 1)
+				case bfttypes.BlockIDFlagNil:
+					p = p.AddField("sig_skipped", 1)
+				case bfttypes.BlockIDFlagAbsent:
+					p = p.AddField("sig_missing", 1)
+				}
+
+				if validatorMetrics.Status != bfttypes.BlockIDFlagAbsent {
+					if validatorMetrics.AbsoluteDelay != 0 {
+						p = p.AddField("abs_delay", float64(validatorMetrics.AbsoluteDelay)/float64(time.Millisecond))
+					}
+
+					if validatorMetrics.StdDevDistance != 0 {
+						p = p.AddField("std_dev_distance", validatorMetrics.StdDevDistance)
+					}
+
+					if validatorMetrics.ReactionTime != 0 {
+						p = p.AddField("reaction_time", float64(validatorMetrics.ReactionTime)/float64(time.Millisecond))
+					}
+
+					if validatorMetrics.IsProposer {
+						p = p.AddField("proposer", 1)
+
+						if validatorMetrics.ProposerDelay != nil && *validatorMetrics.ProposerDelay != 0 {
+							p = p.AddField("proposer_delay", float64(*validatorMetrics.ProposerDelay)/float64(time.Millisecond))
+						}
+					}
+				}
+
+				if val, ok := activeSet[validatorAddress]; ok {
+					if val.Shares != 0 {
+						p = p.AddField("shares", val.Shares)
+					}
+
+					if val.Priority != 0 {
+						p = p.AddField("priority", val.Priority)
+					}
+				}
+
+				allTags.Range(func(k, v string) bool {
+					p = p.AddTag(k, v)
+					return false
+				})
+
+				pointsToWrite = append(pointsToWrite, p)
+			}
 		}
 
 		for _, event := range nextBlock.BlockResults.FinalizeBlockEvents {
@@ -305,17 +398,21 @@ func NewBlockHandlerWithMetrics(
 			p = p.SetTime(nextBlock.Block.Time)
 			p = p.AddField("height", nextBlock.Block.Height)
 			p = p.AddField("tx_idx", txIndex)
+			p = p.AddField("tx_id", fmt.Sprintf("%d_%d", nextBlock.Block.Height, txIndex))
+
 			p = p.AddField("events", len(txResult.Events))
 			p = p.AddField("datasize", len(txResult.Data))
 			p = p.AddTag("code", fmt.Sprintf("%d", txResult.Code))
 			p = p.AddTag("codespace", txResult.Codespace)
 
 			if txResult.Code != 0 {
+				p = p.AddField("error", 1)
+
 				sender, marketID, subaccountID := extractOrderFailureData(txResult.Log)
-				if sender != "" {
+				if sender != "" && sender != "Value" {
 					p = p.AddTag("sender", sender)
 				}
-				if marketID != "" {
+				if marketID != "" && marketID != "Value" {
 					p = p.AddTag("market_id", marketID)
 				}
 				if subaccountID != "" {
@@ -354,7 +451,7 @@ func NewBlockHandlerWithMetrics(
 			}
 
 			metrics.CustomReport(func(s metrics.Statter, tagSpec []string) {
-				s.Timing("report.authz_unpackings", time.Since(authzUnpackStart), tagSpec)
+				s.Timing("report.authz_unpackings_dur", time.Duration(time.Since(authzUnpackStart).Nanoseconds()), tagSpec)
 			}, metricTags)
 
 			p = p.AddField("msgs", len(filteredMsgs))
@@ -419,7 +516,7 @@ func NewBlockHandlerWithMetrics(
 
 		if authzUnpackings > 0 {
 			metrics.CustomReport(func(s metrics.Statter, tagSpec []string) {
-				s.Gauge("report.authz_unpackings", authzUnpackings, tagSpec)
+				s.Count("report.authz_unpackings", authzUnpackings, tagSpec)
 			}, metricTags)
 		}
 
@@ -490,9 +587,9 @@ func lastCommitRoundDuration(block *bfttypes.Block) time.Duration {
 }
 
 // blockSignaturesStats returns the number of commit, nil and absent signatures in the last commit.
-func blockSignaturesStats(block *bfttypes.Block) (ok, skipped, missing, unknown int) {
+func blockSignaturesStats(block *bfttypes.Block) (ok, skipped, missing int) {
 	if block.LastCommit == nil || len(block.LastCommit.Signatures) == 0 {
-		return 0, 0, 0, 0
+		return 0, 0, 0
 	}
 
 	for _, sig := range block.LastCommit.Signatures {
@@ -503,12 +600,10 @@ func blockSignaturesStats(block *bfttypes.Block) (ok, skipped, missing, unknown 
 			skipped++
 		case bfttypes.BlockIDFlagAbsent:
 			missing++
-		default:
-			unknown++
 		}
 	}
 
-	return ok, skipped, missing, unknown
+	return ok, skipped, missing
 }
 
 func extractOrderFailureData(errMsg string) (sender string, marketID string, subaccountID string) {
@@ -522,6 +617,238 @@ func extractOrderFailureData(errMsg string) (sender string, marketID string, sub
 		subaccountID = matches[1]
 	}
 	return
+}
+
+type LastCommitMetricsPerValidator struct {
+	Timestamp      time.Time
+	IsProposer     bool
+	Status         bfttypes.BlockIDFlag
+	AbsoluteDelay  time.Duration
+	RelativeDelay  time.Duration
+	StdDevDistance float64
+	ProposerDelay  *time.Duration // Only set for proposer, measures delay relative to earliest non-proposer signature
+	ReactionTime   time.Duration  // Time since earliest non-proposer signature, zero for proposer and earliest signer
+}
+
+type ActiveSetValidator struct {
+	Address  string
+	Shares   float64
+	Priority int64
+}
+
+type ValidtatorSigSortable struct {
+	Timestamp time.Time
+	Address   string
+}
+
+// computeSortedValidatorSigs returns a sorted slice of ValidtatorSigSortable
+// containing validator signatures sorted by timestamp
+func computeSortedValidatorSigs(block *bfttypes.Block) []ValidtatorSigSortable {
+	if block.LastCommit == nil || len(block.LastCommit.Signatures) == 0 {
+		return nil
+	}
+
+	sigs := make([]ValidtatorSigSortable, 0, len(block.LastCommit.Signatures))
+	for _, sig := range block.LastCommit.Signatures {
+		if sig.BlockIDFlag == bfttypes.BlockIDFlagAbsent ||
+			sig.BlockIDFlag == bfttypes.BlockIDFlagNil {
+			continue
+		}
+
+		// Convert validator address to hex string
+		hexAddr := fmt.Sprintf("%X", sig.ValidatorAddress)
+		sigs = append(sigs, ValidtatorSigSortable{
+			Timestamp: sig.Timestamp,
+			Address:   hexAddr,
+		})
+	}
+
+	// Sort by timestamp
+	sort.Slice(sigs, func(i, j int) bool {
+		return sigs[i].Timestamp.Before(sigs[j].Timestamp)
+	})
+
+	return sigs
+}
+
+// computeRelativeDelays returns a map of validator addresses to their relative delays
+// from the minimum timestamp in the sorted signatures slice
+func computeRelativeDelays(sortedSigs []ValidtatorSigSortable) map[string]time.Duration {
+	if len(sortedSigs) == 0 {
+		return nil
+	}
+
+	minTime := sortedSigs[0].Timestamp
+	relativeDelays := make(map[string]time.Duration, len(sortedSigs))
+
+	for _, sig := range sortedSigs {
+		delay := sig.Timestamp.Sub(minTime)
+		relativeDelays[sig.Address] = delay
+	}
+
+	return relativeDelays
+}
+
+// computeStdDevOfDelays calculates the standard deviation of relative delays
+// excluding zero delays (which correspond to the minimum timestamp signature)
+func computeStdDevOfDelays(delays map[string]time.Duration) float64 {
+	if len(delays) == 0 {
+		return 0
+	}
+
+	// Convert delays to milliseconds and filter out zero delays
+	var nonZeroDelays []float64
+	for _, delay := range delays {
+		if delay != 0 {
+			nonZeroDelays = append(nonZeroDelays, float64(delay)/float64(time.Millisecond))
+		}
+	}
+
+	if len(nonZeroDelays) == 0 || len(nonZeroDelays) == 1 {
+		return 0
+	}
+
+	// Calculate mean
+	var sum float64
+	for _, delay := range nonZeroDelays {
+		sum += delay
+	}
+	mean := sum / float64(len(nonZeroDelays))
+
+	// Calculate variance
+	var variance float64
+	for _, delay := range nonZeroDelays {
+		diff := delay - mean
+		variance += diff * diff
+	}
+	variance = variance / float64(len(nonZeroDelays))
+
+	// Return standard deviation
+	return math.Sqrt(variance)
+}
+
+// computeStdDevDistance calculates how many standard deviations a given value
+// is from the mean of the relative delays
+func computeStdDevDistance(value time.Duration, stdDev float64, allValues map[string]time.Duration) float64 {
+	if stdDev == 0 || len(allValues) == 0 {
+		return 0
+	}
+
+	// Convert value to milliseconds
+	valueMs := float64(value) / float64(time.Millisecond)
+
+	// Calculate mean of non-zero values
+	var sum float64
+	var count int
+	for _, v := range allValues {
+		if v != 0 {
+			sum += float64(v) / float64(time.Millisecond)
+			count++
+		}
+	}
+
+	if count == 0 {
+		return 0
+	}
+
+	mean := sum / float64(count)
+
+	// Calculate how many standard deviations the value is from the mean
+	return (valueMs - mean) / stdDev
+}
+
+func lastCommitMetrics(
+	block *bfttypes.Block,
+	activeSet map[string]ActiveSetValidator,
+) (map[string]LastCommitMetricsPerValidator, float64) {
+	if block.LastCommit == nil || len(block.LastCommit.Signatures) == 0 {
+		return nil, 0
+	}
+
+	metricsPerValidator := make(map[string]LastCommitMetricsPerValidator)
+	proposerAddress := block.Header.ProposerAddress.String()
+
+	// Get sorted validator signatures for timing analysis
+	sortedSigs := computeSortedValidatorSigs(block)
+	if len(sortedSigs) == 0 {
+		return metricsPerValidator, 0
+	}
+
+	// Find earliest non-proposer signature time and address
+	var earliestNonProposerTime *time.Time
+	var earliestNonProposerAddr string
+	for _, sig := range sortedSigs {
+		if sig.Address != proposerAddress {
+			t := sig.Timestamp
+			earliestNonProposerTime = &t
+			earliestNonProposerAddr = sig.Address
+			break
+		}
+	}
+
+	// Compute relative delays for each validator
+	relativeDelays := computeRelativeDelays(sortedSigs)
+
+	// Compute standard deviation of delays
+	stdDev := computeStdDevOfDelays(relativeDelays)
+
+	// Process each signature
+	for _, sig := range block.LastCommit.Signatures {
+		valAddress := sig.ValidatorAddress.String()
+
+		if sig.BlockIDFlag == bfttypes.BlockIDFlagNil || sig.BlockIDFlag == bfttypes.BlockIDFlagAbsent {
+			// Store metrics for missing/nil signatures without timing info
+			metricsPerValidator[valAddress] = LastCommitMetricsPerValidator{
+				Status: sig.BlockIDFlag,
+			}
+			continue
+		}
+
+		// Get relative delay for this validator
+		relativeDelay := relativeDelays[valAddress]
+
+		// Compute standard deviation distance
+		stdDevDistance := computeStdDevDistance(relativeDelay, stdDev, relativeDelays)
+
+		// Create metrics object
+		metrics := LastCommitMetricsPerValidator{
+			Timestamp:      sig.Timestamp,
+			Status:         sig.BlockIDFlag,
+			RelativeDelay:  relativeDelay,
+			AbsoluteDelay:  sig.Timestamp.Sub(sortedSigs[0].Timestamp),
+			StdDevDistance: stdDevDistance,
+			IsProposer:     valAddress == proposerAddress,
+		}
+
+		// For proposer, compute delay relative to earliest non-proposer signature
+		if valAddress == proposerAddress && earliestNonProposerTime != nil {
+			proposerDelay := sig.Timestamp.Sub(*earliestNonProposerTime)
+			metrics.ProposerDelay = &proposerDelay
+			// Proposer has zero reaction time by definition
+			metrics.ReactionTime = 0
+		} else if earliestNonProposerTime != nil {
+			// For non-proposers, compute reaction time relative to earliest non-proposer
+			if valAddress == earliestNonProposerAddr {
+				// Earliest non-proposer has zero reaction time
+				metrics.ReactionTime = 0
+			} else {
+				// Everyone else's reaction time is their delay from earliest non-proposer
+				metrics.ReactionTime = sig.Timestamp.Sub(*earliestNonProposerTime)
+			}
+		}
+
+		metricsPerValidator[valAddress] = metrics
+	}
+
+	for _, val := range activeSet {
+		if _, ok := metricsPerValidator[val.Address]; !ok {
+			metricsPerValidator[val.Address] = LastCommitMetricsPerValidator{
+				Status: bfttypes.BlockIDFlagNil,
+			}
+		}
+	}
+
+	return metricsPerValidator, stdDev
 }
 
 func writeInfluxPoints(

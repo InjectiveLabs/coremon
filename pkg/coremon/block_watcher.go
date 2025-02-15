@@ -297,6 +297,7 @@ var ErrShuttingDown = errors.New("shutting down")
 type NewBlockData struct {
 	Block        *tmtypes.Block
 	BlockResults *ctypes.ResultBlockResults
+	ActiveSet    []*tmtypes.Validator
 }
 
 type BlockGetterDirection string
@@ -507,6 +508,7 @@ func (b *blockGetter) pullBlocks() {
 func (b *blockGetter) fetchBlockByNum(ctx context.Context, height uint64) (NewBlockData, error) {
 	blockC := make(chan *ctypes.ResultBlock, 1)
 	blockResultsC := make(chan *ctypes.ResultBlockResults, 1)
+	validatorSetC := make(chan []*tmtypes.Validator, 1)
 	errC := make(chan error, 4)
 
 	retryOpts := []retry.Option{
@@ -548,8 +550,25 @@ func (b *blockGetter) fetchBlockByNum(ctx context.Context, height uint64) (NewBl
 		}
 	}()
 
+	go func() {
+		defer close(validatorSetC)
+
+		validatorSet, err := b.tmClient.GetValidators(ctx, int64(height))
+		if err != nil {
+			errC <- errors.Wrapf(err, "failed to get validator set (%d)", height)
+			return
+		} else if validatorSet == nil {
+			errC <- errors.Errorf("failed to get validator set (%d)", height)
+			return
+		}
+
+		validatorSetC <- validatorSet.Validators
+	}()
+
 	block := <-blockC
 	blockResults := <-blockResultsC
+	validatorSet := <-validatorSetC
+
 	select {
 	case err := <-errC:
 		return NewBlockData{}, err
@@ -560,6 +579,7 @@ func (b *blockGetter) fetchBlockByNum(ctx context.Context, height uint64) (NewBl
 	return NewBlockData{
 		Block:        block.Block,
 		BlockResults: blockResults,
+		ActiveSet:    validatorSet,
 	}, nil
 }
 
