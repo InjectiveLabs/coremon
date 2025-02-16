@@ -1131,7 +1131,8 @@ func TestLastCommitMetrics(t *testing.T) {
 
 	for idx, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := lastCommitMetrics(tt.block, tt.activeSet)
+			got, stdDev := lastCommitMetrics(tt.block, tt.activeSet)
+			_ = stdDev
 			require.Equal(t, tt.want, got, "[idx %04d] want: %v, got: %v", idx, tt.want, got)
 		})
 	}

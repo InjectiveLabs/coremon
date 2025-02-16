@@ -794,15 +794,12 @@ func lastCommitMetrics(
 
 	// Process each signature
 	for _, sig := range block.LastCommit.Signatures {
-		valAddress := sig.ValidatorAddress.String()
-
-		if sig.BlockIDFlag == bfttypes.BlockIDFlagNil || sig.BlockIDFlag == bfttypes.BlockIDFlagAbsent {
-			// Store metrics for missing/nil signatures without timing info
-			metricsPerValidator[valAddress] = LastCommitMetricsPerValidator{
-				Status: sig.BlockIDFlag,
-			}
+		if sig.BlockIDFlag == bfttypes.BlockIDFlagAbsent {
+			// no validator info, even address
 			continue
 		}
+
+		valAddress := sig.ValidatorAddress.String()
 
 		// Get relative delay for this validator
 		relativeDelay := relativeDelays[valAddress]
@@ -843,7 +840,7 @@ func lastCommitMetrics(
 	for _, val := range activeSet {
 		if _, ok := metricsPerValidator[val.Address]; !ok {
 			metricsPerValidator[val.Address] = LastCommitMetricsPerValidator{
-				Status: bfttypes.BlockIDFlagNil,
+				Status: bfttypes.BlockIDFlagAbsent,
 			}
 		}
 	}
