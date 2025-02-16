@@ -218,6 +218,7 @@ func NewBlockHandlerWithMetrics(
 				p = p.SetTime(nextBlock.Block.Time)
 				p = p.AddField("height", nextBlock.Block.Height)
 				p = p.AddTag("validator", validatorAddress)
+				p = p.AddTag("proposer", nextBlock.Block.Header.ProposerAddress.String())
 
 				switch validatorMetrics.Status {
 				case bfttypes.BlockIDFlagCommit:
@@ -242,7 +243,7 @@ func NewBlockHandlerWithMetrics(
 					}
 
 					if validatorMetrics.IsProposer {
-						p = p.AddField("proposer", 1)
+						p = p.AddField("is_proposer", 1)
 
 						if validatorMetrics.ProposerDelay != nil && *validatorMetrics.ProposerDelay != 0 {
 							p = p.AddField("proposer_delay", float64(*validatorMetrics.ProposerDelay)/float64(time.Millisecond))
