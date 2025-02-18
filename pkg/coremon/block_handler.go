@@ -138,21 +138,12 @@ func NewBlockHandlerWithMetrics(
 			p = p.AddField("height", nextBlock.Block.Height)
 			p = p.AddTag("proposer", nextBlock.Block.Header.ProposerAddress.String())
 
-			if txsInBlock > 0 {
-				p = p.AddField("txs", txsInBlock)
-
-				p = p.AddField("txs_bytes", txBytes)
-				p = p.AddField("txs_gas", txGasUsed)
-				p = p.AddField("txs_gas_wanted", txGasWanted)
-
-				if txEventsPerBlock > 0 {
-					p = p.AddField("txs_events", txEventsPerBlock)
-				}
-			}
-
-			if blockEvents > 0 {
-				p = p.AddField("block_events", blockEvents)
-			}
+			p = p.AddField("txs", txsInBlock)
+			p = p.AddField("txs_bytes", txBytes)
+			p = p.AddField("txs_gas", txGasUsed)
+			p = p.AddField("txs_gas_wanted", txGasWanted)
+			p = p.AddField("txs_events", txEventsPerBlock)
+			p = p.AddField("block_events", blockEvents)
 
 			if blockTimeDiff != 0 {
 				p = p.AddField("time_diff", float64(blockTimeDiff)/float64(time.Millisecond))
