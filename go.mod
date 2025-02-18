@@ -1,8 +1,6 @@
 module github.com/InjectiveLabs/coremon
 
-go 1.22.11
-
-toolchain go1.24.0
+go 1.24.0
 
 require (
 	github.com/InjectiveLabs/sdk-go v1.56.0
