@@ -259,6 +259,7 @@ func NewBlockHandlerWithMetrics(
 
 		for txIndex, txResult := range nextBlock.BlockResults.TxsResults {
 			var txFee sdktypes.DecCoin
+			var txFeeSpender string
 			var txFeeFound bool
 
 			for _, event := range txResult.Events {
@@ -295,6 +296,8 @@ func NewBlockHandlerWithMetrics(
 
 							txFee = fee
 							txFeeFound = true
+						} else if attr.Key == "fee_payer" {
+							txFeeSpender = attr.Value
 						}
 					}
 
@@ -331,54 +334,6 @@ func NewBlockHandlerWithMetrics(
 					})
 
 					pointsToWrite = append(pointsToWrite, p)
-				}
-			}
-
-			p := influxdb2.NewPointWithMeasurement("coremon_txs")
-			p = p.SetTime(nextBlock.Block.Time)
-			p = p.AddField("height", nextBlock.Block.Height)
-			p = p.AddField("tx_idx", txIndex)
-			p = p.AddField("tx_id", fmt.Sprintf("%d_%d", nextBlock.Block.Height, txIndex))
-
-			p = p.AddField("gas_wanted", txResult.GasWanted)
-			p = p.AddField("gas_used", txResult.GasUsed)
-			p = p.AddField("events", len(txResult.Events))
-
-			if txFeeFound {
-				if txFee.Denom == "inj" {
-					txFeeNINJ := txFee.Amount.Quo(nINJ)
-					txFeeCollected = txFeeCollected.Add(txFeeNINJ)
-					feeFloat, _ := txFeeNINJ.Float64()
-					p = p.AddField("fee", feeFloat)
-
-					gasPriceNINJ := txFeeNINJ.Quo(sdkmath.LegacyNewDec(txResult.GasWanted))
-					gasPriceFloat, _ := gasPriceNINJ.Float64()
-					p = p.AddField("gas_price", gasPriceFloat)
-				} else {
-					logger.WithFields(log.Fields{
-						"block":  nextBlock.Block.Height,
-						"tx_idx": txIndex,
-						"denom":  txFee.Denom,
-					}).Warning("unexpected tx fee denom")
-				}
-			}
-
-			p = p.AddField("datasize", len(txResult.Data))
-			p = p.AddTag("code", fmt.Sprintf("%d", txResult.Code))
-			p = p.AddTag("codespace", txResult.Codespace)
-
-			if txResult.Code != 0 {
-				p = p.AddField("error", 1)
-
-				sender, marketID, subaccountID := extractOrderFailureData(txResult.Log)
-				if sender != "" && sender != "Value" {
-					p = p.AddTag("sender", sender)
-				}
-				if marketID != "" && marketID != "Value" {
-					p = p.AddTag("market_id", marketID)
-				}
-				if subaccountID != "" {
-					p = p.AddTag("subaccount_id", subaccountID)
 				}
 			}
 
@@ -419,16 +374,8 @@ func NewBlockHandlerWithMetrics(
 				s.Timing("report.authz_unpackings_dur", time.Duration(time.Since(authzUnpackStart).Nanoseconds()), tagSpec)
 			}, metricTags)
 
-			p = p.AddField("raw_msgs", len(msgs))
-			p = p.AddField("authz_msgs", authzExecMsgs)
-			p = p.AddField("msgs", len(filteredMsgs))
-
-			allTags.Range(func(k, v string) bool {
-				p = p.AddTag(k, v)
-				return false
-			})
-
-			pointsToWrite = append(pointsToWrite, p)
+			var singleMsgName string
+			var singleMsgArity int
 
 			for _, msg := range filteredMsgs {
 				arityFieldsMap, err := parseMsgArity(msg)
@@ -472,6 +419,11 @@ func NewBlockHandlerWithMetrics(
 				p = p.AddTag("msg_name", proto.MessageName(msg))
 				p = p.AddField("msg_arity", totalArity)
 
+				if len(filteredMsgs) == 1 {
+					singleMsgName = proto.MessageName(msg)
+					singleMsgArity = totalArity
+				}
+
 				allTags.Range(func(k, v string) bool {
 					p = p.AddTag(k, v)
 					return false
@@ -479,6 +431,78 @@ func NewBlockHandlerWithMetrics(
 
 				pointsToWrite = append(pointsToWrite, p)
 			}
+
+			p := influxdb2.NewPointWithMeasurement("coremon_txs")
+			p = p.SetTime(nextBlock.Block.Time)
+			p = p.AddField("height", nextBlock.Block.Height)
+			p = p.AddField("tx_idx", txIndex)
+			p = p.AddField("tx_id", fmt.Sprintf("%d_%d", nextBlock.Block.Height, txIndex))
+
+			p = p.AddField("gas_wanted", txResult.GasWanted)
+			p = p.AddField("gas_used", txResult.GasUsed)
+			p = p.AddField("events", len(txResult.Events))
+
+			if txFeeFound {
+				if txFee.Denom == "inj" {
+					txFeeNINJ := txFee.Amount.Quo(nINJ)
+					txFeeCollected = txFeeCollected.Add(txFeeNINJ)
+					feeFloat, _ := txFeeNINJ.Float64()
+					p = p.AddField("fee", feeFloat)
+
+					gasPriceNINJ := txFeeNINJ.Quo(sdkmath.LegacyNewDec(txResult.GasWanted))
+					gasPriceFloat, _ := gasPriceNINJ.Float64()
+					p = p.AddField("gas_price", gasPriceFloat)
+
+					// retarded gas price with >= 1 nINJ when min was 0.16 nINJ
+					if gasPriceFloat >= 1 {
+						p = p.AddTag("fee_spender", txFeeSpender)
+					}
+				} else {
+					logger.WithFields(log.Fields{
+						"block":  nextBlock.Block.Height,
+						"tx_idx": txIndex,
+						"denom":  txFee.Denom,
+					}).Warning("unexpected tx fee denom")
+				}
+			}
+
+			p = p.AddField("datasize", len(txResult.Data))
+			p = p.AddTag("code", fmt.Sprintf("%d", txResult.Code))
+			p = p.AddTag("codespace", txResult.Codespace)
+
+			if txResult.Code != 0 {
+				p = p.AddField("error", 1)
+
+				sender, marketID, subaccountID := extractOrderFailureData(txResult.Log)
+				if sender != "" && sender != "Value" {
+					p = p.AddTag("sender", sender)
+				}
+				if marketID != "" && marketID != "Value" {
+					p = p.AddTag("market_id", marketID)
+				}
+				if subaccountID != "" {
+					p = p.AddTag("subaccount_id", subaccountID)
+				}
+			}
+
+			p = p.AddField("raw_msgs", int64(len(msgs)))
+			p = p.AddField("authz_msgs", int64(authzExecMsgs))
+			p = p.AddField("msgs", int64(len(filteredMsgs)))
+
+			if singleMsgName != "" {
+				p = p.AddTag("msg_name", singleMsgName)
+			}
+
+			if singleMsgArity > 0 {
+				p = p.AddField("msg_arity", singleMsgArity)
+			}
+
+			allTags.Range(func(k, v string) bool {
+				p = p.AddTag(k, v)
+				return false
+			})
+
+			pointsToWrite = append(pointsToWrite, p)
 		}
 
 		{
