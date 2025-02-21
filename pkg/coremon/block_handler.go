@@ -9,7 +9,9 @@ import (
 	"strconv"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	bfttypes "github.com/cometbft/cometbft/types"
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/cosmos/gogoproto/proto"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
@@ -20,6 +22,8 @@ import (
 	metrics "github.com/xlab/statsd_metrics"
 	log "github.com/xlab/suplog"
 )
+
+var nINJ = sdkmath.LegacyMustNewDecFromStr("1000000000")
 
 func NewBlockHandlerWithMetrics(
 	logger log.Logger,
@@ -131,78 +135,9 @@ func NewBlockHandlerWithMetrics(
 			}
 		}, metricTags)
 
+		txFeeCollected := sdkmath.LegacyNewDec(0)
+
 		pointsToWrite := make([]*influxwrite.Point, 0, 1)
-		{
-			p := influxdb2.NewPointWithMeasurement("coremon_block_report")
-			p = p.SetTime(nextBlock.Block.Time)
-			p = p.AddField("height", nextBlock.Block.Height)
-			p = p.AddTag("proposer", nextBlock.Block.Header.ProposerAddress.String())
-
-			p = p.AddField("txs", txsInBlock)
-			p = p.AddField("txs_bytes", txBytes)
-			p = p.AddField("txs_gas", txGasUsed)
-			p = p.AddField("txs_gas_wanted", txGasWanted)
-			p = p.AddField("txs_events", txEventsPerBlock)
-			p = p.AddField("block_events", blockEvents)
-
-			if blockTimeDiff != 0 {
-				p = p.AddField("time_diff", float64(blockTimeDiff)/float64(time.Millisecond))
-
-				if txTroughputAbs > 0 {
-					p = p.AddField("txs_throughput", txTroughputAbs)
-				}
-			}
-
-			if nextBlock.Block.LastCommit.Round > 0 {
-				p = p.AddField("rounds_missed", nextBlock.Block.LastCommit.Round)
-			}
-
-			if !nextBlock.Block.Time.After(prevBlock.Block.Time) {
-				// could be 0ms but count() will show it anyways
-				p = p.AddField("time_skew", float64(nextBlock.Block.Time.Sub(prevBlock.Block.Time))/float64(time.Millisecond))
-			}
-
-			if lastCommitRoundDuration := lastCommitRoundDuration(nextBlock.Block); lastCommitRoundDuration > 0 {
-				p = p.AddField("round_dur", float64(lastCommitRoundDuration)/float64(time.Millisecond))
-			}
-
-			sigOK, sigSkipped, sigMissing := blockSignaturesStats(nextBlock.Block)
-
-			if sigOK > 0 {
-				p = p.AddField("sig_ok", sigOK)
-				if len(nextBlock.ActiveSet) > 0 {
-					p = p.AddField("sig_ok_pct", float64(sigOK)/float64(len(nextBlock.ActiveSet)))
-				}
-			}
-
-			if sigSkipped > 0 {
-				p = p.AddField("sig_skipped", sigSkipped)
-
-				if len(nextBlock.ActiveSet) > 0 {
-					p = p.AddField("sig_skipped_pct", float64(sigSkipped)/float64(len(nextBlock.ActiveSet)))
-				}
-			}
-
-			if sigMissing > 0 {
-				p = p.AddField("sig_missing", sigMissing)
-
-				if len(nextBlock.ActiveSet) > 0 {
-					p = p.AddField("sig_missing_pct", float64(sigMissing)/float64(len(nextBlock.ActiveSet)))
-				}
-			}
-
-			if stdDev > 0 {
-				p = p.AddField("sig_time_std_dev", stdDev)
-			}
-
-			allTags.Range(func(k, v string) bool {
-				p = p.AddTag(k, v)
-				return false
-			})
-
-			pointsToWrite = append(pointsToWrite, p)
-		}
-
 		{
 			for validatorAddress, validatorMetrics := range lastCommitSigs {
 				p := influxdb2.NewPointWithMeasurement("coremon_validator_report")
@@ -323,6 +258,9 @@ func NewBlockHandlerWithMetrics(
 		authzUnpackings := 0
 
 		for txIndex, txResult := range nextBlock.BlockResults.TxsResults {
+			var txFee sdktypes.DecCoin
+			var txFeeFound bool
+
 			for _, event := range txResult.Events {
 				p := influxdb2.NewPointWithMeasurement("coremon_tx_events")
 				p = p.SetTime(nextBlock.Block.Time)
@@ -346,9 +284,19 @@ func NewBlockHandlerWithMetrics(
 					if val, err := strconv.Atoi(attr.Value); err == nil {
 						p = p.AddField("val", int64(val))
 					}
-					p = p.AddField("gas_wanted", txResult.GasWanted)
-					p = p.AddField("gas_used", txResult.GasUsed)
-					p = p.AddField("events", len(txResult.Events))
+
+					if event.Type == "tx" {
+						if attr.Key == "fee" {
+							fee, err := sdktypes.ParseDecCoin(attr.Value)
+							if err != nil {
+								err = errors.Wrapf(err, "failed to parse coin in tx fee event: %s", attr.Value)
+								return err
+							}
+
+							txFee = fee
+							txFeeFound = true
+						}
+					}
 
 					allTags.Range(func(k, v string) bool {
 						p = p.AddTag(k, v)
@@ -392,7 +340,29 @@ func NewBlockHandlerWithMetrics(
 			p = p.AddField("tx_idx", txIndex)
 			p = p.AddField("tx_id", fmt.Sprintf("%d_%d", nextBlock.Block.Height, txIndex))
 
+			p = p.AddField("gas_wanted", txResult.GasWanted)
+			p = p.AddField("gas_used", txResult.GasUsed)
 			p = p.AddField("events", len(txResult.Events))
+
+			if txFeeFound {
+				if txFee.Denom == "inj" {
+					txFeeNINJ := txFee.Amount.Quo(nINJ)
+					txFeeCollected = txFeeCollected.Add(txFeeNINJ)
+					feeFloat, _ := txFeeNINJ.Float64()
+					p = p.AddField("fee", feeFloat)
+
+					gasPriceNINJ := txFeeNINJ.Quo(sdkmath.LegacyNewDec(txResult.GasWanted))
+					gasPriceFloat, _ := gasPriceNINJ.Float64()
+					p = p.AddField("gas_price", gasPriceFloat)
+				} else {
+					logger.WithFields(log.Fields{
+						"block":  nextBlock.Block.Height,
+						"tx_idx": txIndex,
+						"denom":  txFee.Denom,
+					}).Warning("unexpected tx fee denom")
+				}
+			}
+
 			p = p.AddField("datasize", len(txResult.Data))
 			p = p.AddTag("code", fmt.Sprintf("%d", txResult.Code))
 			p = p.AddTag("codespace", txResult.Codespace)
@@ -421,10 +391,13 @@ func NewBlockHandlerWithMetrics(
 			msgs := parsedTx.GetMsgs()
 
 			authzUnpackStart := time.Now()
+			var authzExecMsgs int
 
 			filteredMsgs := make([]proto.Message, 0, len(msgs))
 			for _, msg := range msgs {
 				if msgExec, ok := msg.(*authz.MsgExec); ok {
+					authzExecMsgs++
+
 					for _, authzInternalAny := range msgExec.Msgs {
 						// append interal authz msgs only
 						var authzInternalMsg proto.Message
@@ -446,6 +419,8 @@ func NewBlockHandlerWithMetrics(
 				s.Timing("report.authz_unpackings_dur", time.Duration(time.Since(authzUnpackStart).Nanoseconds()), tagSpec)
 			}, metricTags)
 
+			p = p.AddField("raw_msgs", len(msgs))
+			p = p.AddField("authz_msgs", authzExecMsgs)
 			p = p.AddField("msgs", len(filteredMsgs))
 
 			allTags.Range(func(k, v string) bool {
@@ -504,6 +479,83 @@ func NewBlockHandlerWithMetrics(
 
 				pointsToWrite = append(pointsToWrite, p)
 			}
+		}
+
+		{
+			p := influxdb2.NewPointWithMeasurement("coremon_block_report")
+			p = p.SetTime(nextBlock.Block.Time)
+			p = p.AddField("height", nextBlock.Block.Height)
+			p = p.AddTag("proposer", nextBlock.Block.Header.ProposerAddress.String())
+
+			p = p.AddField("txs", txsInBlock)
+			p = p.AddField("txs_bytes", txBytes)
+			p = p.AddField("txs_gas", txGasUsed)
+			p = p.AddField("txs_gas_wanted", txGasWanted)
+			p = p.AddField("txs_events", txEventsPerBlock)
+			p = p.AddField("block_events", blockEvents)
+
+			if txFeeCollected.IsPositive() {
+				txFeeCollectedFloat, _ := txFeeCollected.Float64()
+				p = p.AddField("txs_fee", txFeeCollectedFloat)
+				p = p.AddField("txs_gas_price", txFeeCollectedFloat/float64(txGasWanted))
+			}
+
+			if blockTimeDiff != 0 {
+				p = p.AddField("time_diff", float64(blockTimeDiff)/float64(time.Millisecond))
+
+				if txTroughputAbs > 0 {
+					p = p.AddField("txs_throughput", txTroughputAbs)
+				}
+			}
+
+			if nextBlock.Block.LastCommit.Round > 0 {
+				p = p.AddField("rounds_missed", nextBlock.Block.LastCommit.Round)
+			}
+
+			if !nextBlock.Block.Time.After(prevBlock.Block.Time) {
+				// could be 0ms but count() will show it anyways
+				p = p.AddField("time_skew", float64(nextBlock.Block.Time.Sub(prevBlock.Block.Time))/float64(time.Millisecond))
+			}
+
+			if lastCommitRoundDuration := lastCommitRoundDuration(nextBlock.Block); lastCommitRoundDuration > 0 {
+				p = p.AddField("round_dur", float64(lastCommitRoundDuration)/float64(time.Millisecond))
+			}
+
+			sigOK, sigSkipped, sigMissing := blockSignaturesStats(nextBlock.Block)
+
+			if sigOK > 0 {
+				p = p.AddField("sig_ok", sigOK)
+				if len(nextBlock.ActiveSet) > 0 {
+					p = p.AddField("sig_ok_pct", float64(sigOK)/float64(len(nextBlock.ActiveSet)))
+				}
+			}
+
+			if sigSkipped > 0 {
+				p = p.AddField("sig_skipped", sigSkipped)
+
+				if len(nextBlock.ActiveSet) > 0 {
+					p = p.AddField("sig_skipped_pct", float64(sigSkipped)/float64(len(nextBlock.ActiveSet)))
+				}
+			}
+
+			if sigMissing > 0 {
+				p = p.AddField("sig_missing", sigMissing)
+
+				if len(nextBlock.ActiveSet) > 0 {
+					p = p.AddField("sig_missing_pct", float64(sigMissing)/float64(len(nextBlock.ActiveSet)))
+				}
+			}
+
+			if stdDev > 0 {
+				p = p.AddField("sig_time_std_dev", stdDev)
+			}
+
+			allTags.Range(func(k, v string) bool {
+				p = p.AddTag(k, v)
+				return false
+			})
+
+			pointsToWrite = append(pointsToWrite, p)
 		}
 
 		if authzUnpackings > 0 {
