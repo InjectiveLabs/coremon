@@ -513,7 +513,7 @@ func (b *blockGetter) fetchBlockByNum(ctx context.Context, height uint64) (NewBl
 
 	retryOpts := []retry.Option{
 		retry.Attempts(10),
-		retry.MaxDelay(5 * time.Second),
+		retry.Delay(300 * time.Millisecond),
 	}
 
 	go func() {
@@ -523,6 +523,9 @@ func (b *blockGetter) fetchBlockByNum(ctx context.Context, height uint64) (NewBl
 			block, err := b.tmClient.GetBlock(ctx, int64(height))
 			if err != nil {
 				err = errors.Wrapf(err, "failed to get block info (%d) from chain daemon, will retry", height)
+				return err
+			} else if block == nil {
+				err = errors.Errorf("failed to get block info (%d)", height)
 				return err
 			}
 
@@ -541,6 +544,9 @@ func (b *blockGetter) fetchBlockByNum(ctx context.Context, height uint64) (NewBl
 			if err != nil {
 				err = errors.Wrapf(err, "failed to get block results (%d) from chain daemon", height)
 				return err
+			} else if blockResults == nil {
+				err = errors.Errorf("failed to get block results (%d)", height)
+				return err
 			}
 
 			blockResultsC <- blockResults
@@ -553,16 +559,21 @@ func (b *blockGetter) fetchBlockByNum(ctx context.Context, height uint64) (NewBl
 	go func() {
 		defer close(validatorSetC)
 
-		validatorSet, err := b.tmClient.GetValidators(ctx, int64(height))
-		if err != nil {
-			errC <- errors.Wrapf(err, "failed to get validator set (%d)", height)
-			return
-		} else if validatorSet == nil {
-			errC <- errors.Errorf("failed to get validator set (%d)", height)
-			return
-		}
+		if err := retry.Do(func() error {
+			validatorSet, err := b.tmClient.GetValidators(ctx, int64(height))
+			if err != nil {
+				err = errors.Wrapf(err, "failed to get validator set (%d)", height)
+				return err
+			} else if validatorSet == nil {
+				err = errors.Errorf("failed to get validator set (%d)", height)
+				return err
+			}
 
-		validatorSetC <- validatorSet.Validators
+			validatorSetC <- validatorSet.Validators
+			return nil
+		}, retryOpts...); err != nil {
+			errC <- err
+		}
 	}()
 
 	block := <-blockC

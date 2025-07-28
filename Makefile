@@ -20,12 +20,6 @@ push:
 	docker push $(IMAGE_NAME):latest
 
 cook:
-	rsync -r ../coremon cooking:~/go/src/
-
-cook-mb:
-	rsync -r ../coremon mb:~/go/src/
-
-cook-mb-ext:
 	rsync -r ../coremon mb-external:~/go/src/
 
-.PHONY: install image push cook cook-mb cook-mb-ext
+.PHONY: install image push cook
