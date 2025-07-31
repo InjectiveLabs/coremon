@@ -27,6 +27,8 @@ func processCmd(c *cli.Cmd) {
 		influxUser     *string
 		influxPassword *string
 
+		appHomeDir *string
+
 		// args
 		rewindFromBlock *int
 		reverse         *bool
@@ -37,6 +39,7 @@ func processCmd(c *cli.Cmd) {
 		&chainID,
 		&bftRPC,
 		&parallelBlockFetchJobs,
+		&appHomeDir,
 	)
 
 	initInfluxOptions(
@@ -124,13 +127,31 @@ func processCmd(c *cli.Cmd) {
 			appLogger.WithFields(log.Fields{
 				"start_block": startBlockDesc,
 			}).Infoln("Pulling blocks in reverse direction.")
-
 		}
 
 		go blockWatcher.StartWatching(uint64(rewindFrom), direction)
 		closer.Bind(func() {
 			blockWatcher.Close()
 		})
+
+		if len(*appHomeDir) > 0 {
+			sysWatcher, err := coremon.NewSysWatcher(
+				*chainID,
+				rootCtx,
+				appLogger,
+				*appHomeDir,
+			)
+			if err != nil {
+				appLogger.WithFields(log.Fields{
+					"app_home_dir": *appHomeDir,
+				}).Errorln("Failed to start system watcher.")
+			} else {
+				go sysWatcher.StartWatching()
+				closer.Bind(func() {
+					sysWatcher.Close()
+				})
+			}
+		}
 
 		//
 		// Wait till Ctrl+C

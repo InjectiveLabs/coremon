@@ -23,7 +23,7 @@ type tmClient struct {
 }
 
 func NewRPCClient(rpcNodeAddr string) (TendermintClient, error) {
-	rpcClient, err := rpchttp.NewWithTimeout(rpcNodeAddr, "/websocket", 10)
+	rpcClient, err := rpchttp.NewWithTimeout(rpcNodeAddr, 10)
 	if err != nil {
 		err = errors.Wrap(err, "failed to init rpcClient")
 		return nil, err

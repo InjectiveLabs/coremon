@@ -62,7 +62,7 @@ func NewBlockHandlerWithMetrics(
 		handlerStart := time.Now()
 
 		blockNumber := uint64(nextBlock.Block.Height)
-		txsInBlock := len(nextBlock.BlockResults.TxsResults)
+		txsInBlock := len(nextBlock.BlockResults.TxResults)
 		blockEvents := len(nextBlock.BlockResults.FinalizeBlockEvents)
 
 		latency := time.Since(nextBlock.Block.Time)
@@ -103,7 +103,7 @@ func NewBlockHandlerWithMetrics(
 				txBytes += len(tx)
 			}
 
-			for _, txResult := range nextBlock.BlockResults.TxsResults {
+			for _, txResult := range nextBlock.BlockResults.TxResults {
 				txGasUsed += txResult.GasUsed
 				txGasWanted += txResult.GasWanted
 				txEventsPerBlock += int64(len(txResult.Events))
@@ -257,7 +257,7 @@ func NewBlockHandlerWithMetrics(
 
 		authzUnpackings := 0
 
-		for txIndex, txResult := range nextBlock.BlockResults.TxsResults {
+		for txIndex, txResult := range nextBlock.BlockResults.TxResults {
 			var txFee sdktypes.DecCoin
 			var txFeeSpender string
 			var txFeeFound bool

@@ -42,6 +42,7 @@ func initCosmosOptions(
 	chainID **string,
 	bftRPC **string,
 	parallelBlockFetchJobs **int,
+	appHomeDir **string,
 ) {
 	*chainID = c.String(cli.StringOpt{
 		Name:   "chain-id",
@@ -62,6 +63,13 @@ func initCosmosOptions(
 		Desc:   "Number of sumultaneous jobs fetching the blocks from the RPC. Change only if need to access historical.",
 		EnvVar: "COREMON_BLOCK_FETCH_JOBS",
 		Value:  1,
+	})
+
+	*appHomeDir = c.String(cli.StringOpt{
+		Name:   "H app-home-dir",
+		Desc:   "Specify the home directory for the injectived.",
+		EnvVar: "COREMON_APP_HOME",
+		Value:  "~/.injectived",
 	})
 }
 

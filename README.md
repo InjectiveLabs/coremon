@@ -52,3 +52,13 @@ make image
 # optionally:
 make push
 ```
+
+
+## Env Watching
+
+* `COREMON_APP_HOME` (also `-H` flag):  Specify the home directory for the injectived to watch its disk space usage.
+
+You can set alternative locations for various system directories by using the following environment variables:
+
+* `/`: HOST_ROOT
+* `/proc/N/mountinfo`: HOST_PROC_MOUNTINFO
