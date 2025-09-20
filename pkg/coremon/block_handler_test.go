@@ -257,7 +257,7 @@ func newTestBlockHandler(
 		handlerStart := time.Now()
 
 		blockNumber := uint64(nextBlock.Block.Height)
-		txsInBlock := len(nextBlock.BlockResults.TxsResults)
+		txsInBlock := len(nextBlock.BlockResults.TxResults)
 		blockEvents := len(nextBlock.BlockResults.FinalizeBlockEvents)
 
 		latency := time.Since(nextBlock.Block.Time)
@@ -285,7 +285,7 @@ func newTestBlockHandler(
 				txBytes += len(tx)
 			}
 
-			for _, txResult := range nextBlock.BlockResults.TxsResults {
+			for _, txResult := range nextBlock.BlockResults.TxResults {
 				txGasUsed += txResult.GasUsed
 				txGasWanted += txResult.GasWanted
 				txEventsPerBlock += int64(len(txResult.Events))
@@ -404,7 +404,7 @@ func newTestBlockHandler(
 
 		authzUnpackings := 0
 
-		for txIndex, txResult := range nextBlock.BlockResults.TxsResults {
+		for txIndex, txResult := range nextBlock.BlockResults.TxResults {
 			for _, event := range txResult.Events {
 				p := influxdb2.NewPointWithMeasurement("coremon_tx_events")
 				p = p.SetTime(nextBlock.Block.Time)

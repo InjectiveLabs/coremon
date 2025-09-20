@@ -42,7 +42,6 @@ func initCosmosOptions(
 	chainID **string,
 	bftRPC **string,
 	parallelBlockFetchJobs **int,
-	appHomeDir **string,
 ) {
 	*chainID = c.String(cli.StringOpt{
 		Name:   "chain-id",
@@ -64,12 +63,25 @@ func initCosmosOptions(
 		EnvVar: "COREMON_BLOCK_FETCH_JOBS",
 		Value:  1,
 	})
+}
 
+func initSysMetricsOptions(
+	c *cli.Cmd,
+	appHomeDir **string,
+	sysMetricsEnabled **bool,
+) {
 	*appHomeDir = c.String(cli.StringOpt{
 		Name:   "H app-home-dir",
 		Desc:   "Specify the home directory for the injectived.",
 		EnvVar: "COREMON_APP_HOME",
 		Value:  "~/.injectived",
+	})
+
+	*sysMetricsEnabled = c.Bool(cli.BoolOpt{
+		Name:   "sys-metrics-enabled",
+		Desc:   "Enables system metrics reporting (use only if injectived running on the same machine).",
+		EnvVar: "COREMON_SYS_METRICS_ENABLED",
+		Value:  false,
 	})
 }
 

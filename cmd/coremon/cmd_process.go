@@ -27,7 +27,8 @@ func processCmd(c *cli.Cmd) {
 		influxUser     *string
 		influxPassword *string
 
-		appHomeDir *string
+		sysMetricsEnabled *bool
+		appHomeDir        *string
 
 		// args
 		rewindFromBlock *int
@@ -39,7 +40,12 @@ func processCmd(c *cli.Cmd) {
 		&chainID,
 		&bftRPC,
 		&parallelBlockFetchJobs,
+	)
+
+	initSysMetricsOptions(
+		c,
 		&appHomeDir,
+		&sysMetricsEnabled,
 	)
 
 	initInfluxOptions(
