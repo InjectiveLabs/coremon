@@ -4,10 +4,10 @@ go 1.24.5
 
 require (
 	cosmossdk.io/math v1.5.0
-	github.com/InjectiveLabs/sdk-go v1.58.0
+	github.com/InjectiveLabs/sdk-go v1.59.0
 	github.com/avast/retry-go/v4 v4.6.0
 	github.com/cometbft/cometbft v1.0.1
-	github.com/cosmos/cosmos-sdk v0.50.9
+	github.com/cosmos/cosmos-sdk v0.50.12
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/influxdata/influxdb-client-go/v2 v2.4.0
 	github.com/jawher/mow.cli v1.2.0
@@ -56,6 +56,7 @@ require (
 	github.com/alexcesaro/statsd v2.0.0+incompatible // indirect
 	github.com/aws/aws-sdk-go v1.44.327 // indirect
 	github.com/bandprotocol/bandchain-packet v0.0.4 // indirect
+	github.com/bcp-innovations/hyperlane-cosmos v0.0.0-00010101000000-000000000000 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
 	github.com/bits-and-blooms/bitset v1.22.0 // indirect
@@ -73,19 +74,18 @@ require (
 	github.com/cockroachdb/errors v1.11.3 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240816210425-c5d0cb0b6fc0 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20241215232642-bb51bb14a506 // indirect
-	github.com/cockroachdb/pebble v1.1.4 // indirect
+	github.com/cockroachdb/pebble v1.1.5 // indirect
 	github.com/cockroachdb/redact v1.1.6 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/cometbft/cometbft-db v1.0.4 // indirect
 	github.com/cometbft/cometbft/api v1.0.0 // indirect
-	github.com/consensys/bavard v0.1.30 // indirect
-	github.com/consensys/gnark-crypto v0.17.0 // indirect
+	github.com/consensys/gnark-crypto v0.18.0 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/cosmos-db v1.1.1 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
-	github.com/cosmos/iavl v1.2.2 // indirect
+	github.com/cosmos/iavl v1.2.6 // indirect
 	github.com/cosmos/ibc-go/modules/capability v1.0.1 // indirect
 	github.com/cosmos/ibc-go/v8 v8.6.1 // indirect
 	github.com/cosmos/ics23/go v0.11.0 // indirect
@@ -169,13 +169,13 @@ require (
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
+	github.com/onsi/ginkgo/v2 v2.11.0 // indirect
 	github.com/onsi/gomega v1.27.10 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/outcaste-io/ristretto v0.2.3 // indirect
@@ -248,40 +248,42 @@ require (
 	gotest.tools/v3 v3.5.1 // indirect
 	nhooyr.io/websocket v1.8.7 // indirect
 	pgregory.net/rapid v1.1.0 // indirect
-	rsc.io/tmplfunc v0.0.3 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
 replace (
-	cosmossdk.io/api => github.com/InjectiveLabs/cosmos-sdk/api v0.50.13-evm-comet1-inj.3
-	cosmossdk.io/client/v2 => github.com/InjectiveLabs/cosmos-sdk/client/v2 v2.0.0-evm-comet1-inj.3
-	cosmossdk.io/core => github.com/InjectiveLabs/cosmos-sdk/core v0.50.13-evm-comet1-inj.3
-	cosmossdk.io/store => github.com/InjectiveLabs/cosmos-sdk/store v0.50.13-evm-comet1-inj.3
-	cosmossdk.io/x/circuit => github.com/InjectiveLabs/cosmos-sdk/x/circuit v0.50.13-evm-comet1-inj.3
-	cosmossdk.io/x/evidence => github.com/InjectiveLabs/cosmos-sdk/x/evidence v0.50.13-evm-comet1-inj.3
-	cosmossdk.io/x/feegrant => github.com/InjectiveLabs/cosmos-sdk/x/feegrant v0.50.13-evm-comet1-inj.3
-	cosmossdk.io/x/nft => github.com/InjectiveLabs/cosmos-sdk/x/nft v0.50.13-evm-comet1-inj.3
-	cosmossdk.io/x/tx => github.com/InjectiveLabs/cosmos-sdk/x/tx v0.50.13-evm-comet1-inj.3
-	cosmossdk.io/x/upgrade => github.com/InjectiveLabs/cosmos-sdk/x/upgrade v0.50.13-evm-comet1-inj.3
+	cosmossdk.io/api => github.com/InjectiveLabs/cosmos-sdk/api v0.50.14-inj
+	cosmossdk.io/client/v2 => github.com/InjectiveLabs/cosmos-sdk/client/v2 v2.0.0-v0.50.14-inj
+	cosmossdk.io/core => github.com/InjectiveLabs/cosmos-sdk/core v0.50.14-inj
+	cosmossdk.io/errors => github.com/InjectiveLabs/cosmos-sdk/errors v0.50.14-inj
+	cosmossdk.io/store => github.com/InjectiveLabs/cosmos-sdk/store v0.50.14-inj
+	cosmossdk.io/x/circuit => github.com/InjectiveLabs/cosmos-sdk/x/circuit v0.50.14-inj
+	cosmossdk.io/x/evidence => github.com/InjectiveLabs/cosmos-sdk/x/evidence v0.50.14-inj
+	cosmossdk.io/x/feegrant => github.com/InjectiveLabs/cosmos-sdk/x/feegrant v0.50.14-inj
+	cosmossdk.io/x/nft => github.com/InjectiveLabs/cosmos-sdk/x/nft v0.50.14-inj
+	cosmossdk.io/x/tx => github.com/InjectiveLabs/cosmos-sdk/x/tx v0.50.14-inj
+	cosmossdk.io/x/upgrade => github.com/InjectiveLabs/cosmos-sdk/x/upgrade v0.50.14-inj
 
 	github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
 	github.com/ChainSafe/go-schnorrkel/1 => github.com/ChainSafe/go-schnorrkel v1.0.0
-	github.com/CosmWasm/wasmd => github.com/InjectiveLabs/wasmd v0.53.3-evm-comet1-inj
+	github.com/CosmWasm/wasmd => github.com/InjectiveLabs/wasmd v0.53.3-inj.2
+
 	github.com/bandprotocol/bandchain-packet => github.com/InjectiveLabs/bandchain-packet v0.0.4-inj-1
+	github.com/bcp-innovations/hyperlane-cosmos => github.com/InjectiveLabs/hyperlane-cosmos v1.0.1-inj
 
-	github.com/cometbft/cometbft => github.com/InjectiveLabs/cometbft v1.0.1-inj.2
-	github.com/cometbft/cometbft/api => github.com/injectivelabs/cometbft/api v1.0.0-inj.2
-	github.com/cosmos/cosmos-sdk => github.com/InjectiveLabs/cosmos-sdk v0.50.13-evm-comet1-inj.3
+	github.com/cometbft/cometbft => github.com/InjectiveLabs/cometbft v1.0.1-inj.4
+	github.com/cometbft/cometbft/api => github.com/InjectiveLabs/cometbft/api v1.0.0-inj.2
+	github.com/cosmos/cosmos-sdk => github.com/InjectiveLabs/cosmos-sdk v0.50.14-inj
 
-	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 => github.com/InjectiveLabs/ibc-apps/middleware/packet-forward-middleware/v8 v8.2.0-evm-comet1-inj
-	github.com/cosmos/ibc-apps/modules/ibc-hooks/v8 => github.com/InjectiveLabs/ibc-apps/modules/ibc-hooks/v8 v8.0.0-evm-comet1-inj
-	github.com/cosmos/ibc-go/modules/apps/callbacks => github.com/InjectiveLabs/ibc-go/modules/apps/callbacks v0.2.0-evm-comet1-inj
-	github.com/cosmos/ibc-go/modules/capability => github.com/InjectiveLabs/ibc-go/modules/capability v1.0.0-evm-comet1-inj
-	github.com/cosmos/ibc-go/v8 => github.com/InjectiveLabs/ibc-go/v8 v8.7.0-evm-comet1-inj
+	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 => github.com/InjectiveLabs/ibc-apps/middleware/packet-forward-middleware/v8 v8.2.0-inj.3
+	github.com/cosmos/ibc-apps/modules/ibc-hooks/v8 => github.com/InjectiveLabs/ibc-apps/modules/ibc-hooks/v8 v8.0.0-inj.3
+	github.com/cosmos/ibc-go/modules/apps/callbacks => github.com/InjectiveLabs/ibc-go/modules/apps/callbacks v0.2.0-inj.3
+	github.com/cosmos/ibc-go/modules/capability => github.com/InjectiveLabs/ibc-go/modules/capability v1.0.0-inj.3
+	github.com/cosmos/ibc-go/v8 => github.com/InjectiveLabs/ibc-go/v8 v8.7.0-inj.3
 
 	// geth dev v1.14.11-inj
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	github.com/skip-mev/block-sdk/v2 => github.com/InjectiveLabs/block-sdk/v2 v2.5.1-evm-comet1-inj
+	github.com/skip-mev/block-sdk/v2 => github.com/InjectiveLabs/block-sdk/v2 v2.5.1-inj.8
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	github.com/tyler-smith/go-bip39 => github.com/InjectiveLabs/go-bip39 v1.1.0
 )
