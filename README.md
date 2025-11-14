@@ -25,6 +25,7 @@ Run 'coremon COMMAND --help' for more information on a command.
 ```
 
 Processing subcommand:
+
 ```
 > coremon process -h
 
@@ -47,12 +48,13 @@ make install
 ## Docker
 
 ```bash
-make image
+make buildx
 
-# optionally:
-make push
+# optionally
+make buildx-push
 ```
 
+Use GH pipeline to push a proper release into registry.
 
 ## Env Watching
 
