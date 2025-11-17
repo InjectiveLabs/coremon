@@ -82,6 +82,11 @@ func processCmd(c *cli.Cmd) {
 			influxClient = influxdb2.NewClient(*influxEndpoint, *influxUser+":"+*influxPassword)
 			influxWriteAPI = influxClient.WriteAPI("", *influxDBName)
 
+			appLogger.WithFields(log.Fields{
+				"influx_endpoint": *influxEndpoint,
+				"influx_db_name":  *influxDBName,
+			}).Infoln("Using InfluxDB for writes")
+
 			errorsCh := influxWriteAPI.Errors()
 			go func() {
 				for err := range errorsCh {

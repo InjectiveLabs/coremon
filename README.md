@@ -48,10 +48,10 @@ make install
 ## Docker
 
 ```bash
-make buildx
+make buildx TAG=v1.17.0
 
-# optionally
-make buildx-push
+# optionally, to publish build
+make buildx-push TAG=v1.17.0
 ```
 
 Use GH pipeline to push a proper release into registry.
