@@ -182,6 +182,21 @@ func (m *MockWriteAPI) Flush() {
 	m.Called()
 }
 
+// MockWriteAPI is a mock implementation of influxdb2api.WriteAPIBlocking
+type MockWriteAPIBlocking struct {
+	mock.Mock
+}
+
+func (m *MockWriteAPIBlocking) WritePoint(ctx context.Context, point ...*influxwrite.Point) error {
+	args := m.Called(ctx, point)
+	return args.Error(0)
+}
+
+func (m *MockWriteAPIBlocking) WriteRecord(ctx context.Context, line ...string) error {
+	args := m.Called(ctx, line)
+	return args.Error(0)
+}
+
 func TestExtractOrderFailureData(t *testing.T) {
 	tests := []struct {
 		name           string

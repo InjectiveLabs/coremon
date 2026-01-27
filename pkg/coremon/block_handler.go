@@ -143,6 +143,7 @@ func NewBlockHandlerWithMetrics(
 				p := influxdb2.NewPointWithMeasurement("coremon_validator_report")
 				p = p.SetTime(nextBlock.Block.Time)
 				p = p.AddField("height", nextBlock.Block.Height)
+				p = p.AddField("count", 1)
 				p = p.AddTag("validator", validatorAddress)
 				p = p.AddTag("proposer", nextBlock.Block.Header.ProposerAddress.String())
 
@@ -196,11 +197,14 @@ func NewBlockHandlerWithMetrics(
 			}
 		}
 
-		for _, event := range nextBlock.BlockResults.FinalizeBlockEvents {
+		for evIdx, event := range nextBlock.BlockResults.FinalizeBlockEvents {
 			p := influxdb2.NewPointWithMeasurement("coremon_block_events")
 			p = p.SetTime(nextBlock.Block.Time)
 			p = p.AddField("height", nextBlock.Block.Height)
 			p = p.AddTag("ev_type", event.Type)
+			p = p.AddField("ev_idx", evIdx)
+			p = p.AddField("ev_id", fmt.Sprintf("fin_%d_%d", nextBlock.Block.Height, evIdx))
+			p = p.AddField("count", 1)
 
 			allTags.Range(func(k, v string) bool {
 				p = p.AddTag(k, v)
@@ -213,7 +217,10 @@ func NewBlockHandlerWithMetrics(
 				p := influxdb2.NewPointWithMeasurement("coremon_block_events_attrs")
 				p = p.SetTime(nextBlock.Block.Time)
 				p = p.AddField("height", nextBlock.Block.Height)
+				p = p.AddField("count", 1)
 				p = p.AddTag("ev_type", event.Type)
+				p = p.AddField("ev_idx", evIdx)
+				p = p.AddField("ev_id", fmt.Sprintf("fin_%d_%d", nextBlock.Block.Height, evIdx))
 				p = p.AddTag("attr_key", attr.Key)
 				p = p.AddField("valsize", len(attr.Value))
 				if val, err := strconv.Atoi(attr.Value); err == nil {
@@ -242,7 +249,10 @@ func NewBlockHandlerWithMetrics(
 				p := influxdb2.NewPointWithMeasurement("coremon_block_event_arity")
 				p = p.SetTime(nextBlock.Block.Time)
 				p = p.AddField("height", nextBlock.Block.Height)
+				p = p.AddField("count", 1)
 				p = p.AddTag("ev_type", event.Type)
+				p = p.AddField("ev_idx", evIdx)
+				p = p.AddField("ev_id", fmt.Sprintf("fin_%d_%d", nextBlock.Block.Height, evIdx))
 				p = p.AddTag("arity_field", fieldName)
 				p = p.AddField("arity", arity)
 
@@ -262,11 +272,16 @@ func NewBlockHandlerWithMetrics(
 			var txFeeSpender string
 			var txFeeFound bool
 
-			for _, event := range txResult.Events {
+			for evIdx, event := range txResult.Events {
 				p := influxdb2.NewPointWithMeasurement("coremon_tx_events")
 				p = p.SetTime(nextBlock.Block.Time)
 				p = p.AddField("height", nextBlock.Block.Height)
+				p = p.AddField("tx_idx", txIndex)
+				p = p.AddField("tx_id", fmt.Sprintf("%d_%d", nextBlock.Block.Height, txIndex))
 				p = p.AddTag("ev_type", event.Type)
+				p = p.AddField("ev_idx", evIdx)
+				p = p.AddField("ev_id", fmt.Sprintf("evtx_%d_%d_%d", nextBlock.Block.Height, txIndex, evIdx))
+				p = p.AddField("count", 1)
 
 				allTags.Range(func(k, v string) bool {
 					p = p.AddTag(k, v)
@@ -279,7 +294,12 @@ func NewBlockHandlerWithMetrics(
 					p := influxdb2.NewPointWithMeasurement("coremon_tx_events_attrs")
 					p = p.SetTime(nextBlock.Block.Time)
 					p = p.AddField("height", nextBlock.Block.Height)
+					p = p.AddField("count", 1)
+					p = p.AddField("tx_idx", txIndex)
+					p = p.AddField("tx_id", fmt.Sprintf("%d_%d", nextBlock.Block.Height, txIndex))
 					p = p.AddTag("ev_type", event.Type)
+					p = p.AddField("ev_idx", evIdx)
+					p = p.AddField("ev_id", fmt.Sprintf("evtx_%d_%d_%d", nextBlock.Block.Height, txIndex, evIdx))
 					p = p.AddTag("attr_key", attr.Key)
 					p = p.AddField("valsize", len(attr.Value))
 					if val, err := strconv.Atoi(attr.Value); err == nil {
@@ -323,8 +343,12 @@ func NewBlockHandlerWithMetrics(
 					p := influxdb2.NewPointWithMeasurement("coremon_tx_event_arity")
 					p = p.SetTime(nextBlock.Block.Time)
 					p = p.AddField("height", nextBlock.Block.Height)
+					p = p.AddField("count", 1)
 					p = p.AddField("tx_idx", txIndex)
+					p = p.AddField("tx_id", fmt.Sprintf("%d_%d", nextBlock.Block.Height, txIndex))
 					p = p.AddTag("ev_type", event.Type)
+					p = p.AddField("ev_idx", evIdx)
+					p = p.AddField("ev_id", fmt.Sprintf("evtx_%d_%d_%d", nextBlock.Block.Height, txIndex, evIdx))
 					p = p.AddTag("arity_field", fieldName)
 					p = p.AddField("arity", arity)
 
@@ -377,7 +401,7 @@ func NewBlockHandlerWithMetrics(
 			var singleMsgName string
 			var singleMsgArity int
 
-			for _, msg := range filteredMsgs {
+			for msgIndex, msg := range filteredMsgs {
 				arityFieldsMap, err := parseMsgArity(msg)
 				if err != nil {
 					err = errors.Wrap(err, "failed to parse msg arity")
@@ -396,9 +420,12 @@ func NewBlockHandlerWithMetrics(
 					p = p.SetTime(nextBlock.Block.Time)
 					p = p.AddField("height", nextBlock.Block.Height)
 					p = p.AddField("tx_idx", txIndex)
+					p = p.AddField("msg_idx", msgIndex)
+					p = p.AddField("msg_id", fmt.Sprintf("%d_%d_%d", nextBlock.Block.Height, txIndex, msgIndex))
 					p = p.AddTag("msg_name", proto.MessageName(msg))
 					p = p.AddTag("arity_field", fieldName)
 					p = p.AddField("arity", arity)
+					p = p.AddField("count", 1)
 
 					allTags.Range(func(k, v string) bool {
 						p = p.AddTag(k, v)
@@ -416,6 +443,9 @@ func NewBlockHandlerWithMetrics(
 				p = p.SetTime(nextBlock.Block.Time)
 				p = p.AddField("height", nextBlock.Block.Height)
 				p = p.AddField("tx_idx", txIndex)
+				p = p.AddField("msg_idx", msgIndex)
+				p = p.AddField("count", 1)
+				p = p.AddField("msg_id", fmt.Sprintf("%d_%d_%d", nextBlock.Block.Height, txIndex, msgIndex))
 				p = p.AddTag("msg_name", proto.MessageName(msg))
 				p = p.AddField("msg_arity", totalArity)
 
@@ -435,9 +465,9 @@ func NewBlockHandlerWithMetrics(
 			p := influxdb2.NewPointWithMeasurement("coremon_txs")
 			p = p.SetTime(nextBlock.Block.Time)
 			p = p.AddField("height", nextBlock.Block.Height)
+			p = p.AddField("count", 1)
 			p = p.AddField("tx_idx", txIndex)
 			p = p.AddField("tx_id", fmt.Sprintf("%d_%d", nextBlock.Block.Height, txIndex))
-
 			p = p.AddField("gas_wanted", txResult.GasWanted)
 			p = p.AddField("gas_used", txResult.GasUsed)
 			p = p.AddField("events", len(txResult.Events))
@@ -925,15 +955,11 @@ func writeInfluxPoints(
 ) {
 	defer metrics.ReportFuncTiming(metricTags)()
 
-	// defer func() {
-	// 	writeAPI.Flush()
-	// }()
+	defer func() {
+		writeAPI.Flush()
+	}()
 
 	for _, point := range points {
 		writeAPI.WritePoint(point)
-		// if err := writeAPI.WritePoint(ctx, point); err != nil {
-		// 	logger.WithError(err).Warning("failed to write point to InfluxDB")
-		// 	return
-		// }
 	}
 }

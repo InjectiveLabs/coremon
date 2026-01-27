@@ -145,7 +145,7 @@ func processCmd(c *cli.Cmd) {
 			blockWatcher.Close()
 		})
 
-		if len(*appHomeDir) > 0 {
+		if *sysMetricsEnabled && len(*appHomeDir) > 0 {
 			sysWatcher, err := coremon.NewSysWatcher(
 				*chainID,
 				rootCtx,

@@ -76,7 +76,7 @@ func (w *sysWatcher) measureAndReportSysUsage(appHomeDir string) {
 	diskUsageTimeout, cancelFn := context.WithTimeout(w.rootCtx, time.Second*10)
 	defer cancelFn()
 
-	du, err := disk.UsageWithContext(diskUsageTimeout, "/")
+	du, err := disk.UsageWithContext(diskUsageTimeout, appHomeDir)
 	if err != nil {
 		w.logger.WithFields(log.Fields{
 			"root": appHomeDir,
