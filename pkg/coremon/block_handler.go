@@ -10,6 +10,7 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	abci "github.com/cometbft/cometbft/abci/types"
 	bfttypes "github.com/cometbft/cometbft/types"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
@@ -24,6 +25,11 @@ import (
 )
 
 var nINJ = sdkmath.LegacyMustNewDecFromStr("1000000000")
+
+const (
+	txFeesEventType      = "txfees"
+	txFeesBaseFeeAttrKey = "basefee"
+)
 
 func NewBlockHandlerWithMetrics(
 	logger log.Logger,
@@ -212,6 +218,30 @@ func NewBlockHandlerWithMetrics(
 			})
 
 			pointsToWrite = append(pointsToWrite, p)
+
+			if event.Type == txFeesEventType {
+				baseFeeDec, _, found, err := parseTxFeesBaseFeeEvent(event)
+				if err != nil {
+					logger.WithFields(log.Fields{
+						"height": nextBlock.Block.Height,
+						"error":  err,
+					}).Warning("failed to parse txfees basefee event")
+				} else if found {
+					baseFeeFloat, _ := baseFeeDec.Float64()
+					p := influxdb2.NewPointWithMeasurement("coremon_txfees_basefee")
+					p = p.SetTime(nextBlock.Block.Time)
+					p = p.AddField("height", nextBlock.Block.Height)
+					p = p.AddField("count", 1)
+					p = p.AddField("base_fee", baseFeeFloat)
+
+					allTags.Range(func(k, v string) bool {
+						p = p.AddTag(k, v)
+						return false
+					})
+
+					pointsToWrite = append(pointsToWrite, p)
+				}
+			}
 
 			for _, attr := range event.Attributes {
 				p := influxdb2.NewPointWithMeasurement("coremon_block_events_attrs")
@@ -715,6 +745,27 @@ func extractOrderFailureData(errMsg string) (sender string, marketID string, sub
 		subaccountID = matches[1]
 	}
 	return
+}
+
+func parseTxFeesBaseFeeEvent(event abci.Event) (sdkmath.LegacyDec, string, bool, error) {
+	for _, attr := range event.Attributes {
+		if attr.Key != txFeesBaseFeeAttrKey {
+			continue
+		}
+
+		if attr.Value == "" {
+			return sdkmath.LegacyDec{}, "", false, nil
+		}
+
+		baseFeeDec, err := sdkmath.LegacyNewDecFromStr(attr.Value)
+		if err != nil {
+			return sdkmath.LegacyDec{}, "", false, errors.Wrap(err, "invalid basefee value")
+		}
+
+		return baseFeeDec, attr.Value, true, nil
+	}
+
+	return sdkmath.LegacyDec{}, "", false, nil
 }
 
 type LastCommitMetricsPerValidator struct {

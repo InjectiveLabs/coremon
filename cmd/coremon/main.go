@@ -34,8 +34,8 @@ func main() {
 	_ = app.Run(os.Args)
 }
 
-const bannerStr = `┏┓              
-┃ ┏┓┏┓┏┓┏┳┓┏┓┏┓ 
+const bannerStr = `┏┓
+┃ ┏┓┏┓┏┓┏┳┓┏┓┏┓
 ┗┛┗┛┛ ┗ ┛┗┗┗┛┛┗•
 `
 
