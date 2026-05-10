@@ -178,6 +178,8 @@ func (m *MockWriteAPI) Errors() <-chan error {
 	return make(chan error)
 }
 
+func (m *MockWriteAPI) SetWriteFailedCallback(_ influxdb2api.WriteFailedCallback) {}
+
 func (m *MockWriteAPI) Flush() {
 	m.Called()
 }
@@ -628,8 +630,9 @@ func TestWriteInfluxPoints(t *testing.T) {
 	point = point.AddField("test_field", 1)
 	points := []*influxwrite.Point{point}
 
-	// Set up expectations - only expect WritePoint, not Flush since it's commented out in implementation
+	// Set up expectations for the async writer.
 	mockWriteAPI.On("WritePoint", point).Return()
+	mockWriteAPI.On("Flush").Return()
 
 	ctx := context.Background()
 	metricTags := metrics.NewTags(map[string]string{
@@ -1057,13 +1060,14 @@ func TestLastCommitMetrics(t *testing.T) {
 				},
 			},
 			activeSet: map[string]ActiveSetValidator{
-				"76616C31": {Shares: 100, Priority: 1},
-				"76616C32": {Shares: 100, Priority: 2},
-				"76616C33": {Shares: 100, Priority: 3},
+				"76616C31": {Address: "76616C31", Shares: 100, Priority: 1},
+				"76616C32": {Address: "76616C32", Shares: 100, Priority: 2},
+				"76616C33": {Address: "76616C33", Shares: 100, Priority: 3},
 			},
 			want: map[string]LastCommitMetricsPerValidator{
 				"76616C31": {
 					Timestamp:      baseTime,
+					IsProposer:     true,
 					Status:         bfttypes.BlockIDFlagCommit,
 					RelativeDelay:  0,
 					StdDevDistance: -3,
@@ -1073,6 +1077,7 @@ func TestLastCommitMetrics(t *testing.T) {
 				"76616C32": {
 					Timestamp:      baseTime.Add(1 * time.Second),
 					Status:         bfttypes.BlockIDFlagCommit,
+					AbsoluteDelay:  1 * time.Second,
 					RelativeDelay:  1 * time.Second,
 					StdDevDistance: -1,
 					ReactionTime:   0,
@@ -1080,6 +1085,7 @@ func TestLastCommitMetrics(t *testing.T) {
 				"76616C33": {
 					Timestamp:      baseTime.Add(2 * time.Second),
 					Status:         bfttypes.BlockIDFlagCommit,
+					AbsoluteDelay:  2 * time.Second,
 					RelativeDelay:  2 * time.Second,
 					StdDevDistance: 1,
 					ReactionTime:   1 * time.Second,
@@ -1113,14 +1119,16 @@ func TestLastCommitMetrics(t *testing.T) {
 				},
 			},
 			activeSet: map[string]ActiveSetValidator{
-				"76616C31": {Shares: 100, Priority: 1},
-				"76616C32": {Shares: 100, Priority: 2},
-				"76616C33": {Shares: 100, Priority: 3},
+				"76616C31": {Address: "76616C31", Shares: 100, Priority: 1},
+				"76616C32": {Address: "76616C32", Shares: 100, Priority: 2},
+				"76616C33": {Address: "76616C33", Shares: 100, Priority: 3},
 			},
 			want: map[string]LastCommitMetricsPerValidator{
 				"76616C31": {
 					Timestamp:      baseTime.Add(1 * time.Second),
+					IsProposer:     true,
 					Status:         bfttypes.BlockIDFlagCommit,
+					AbsoluteDelay:  1 * time.Second,
 					RelativeDelay:  1 * time.Second,
 					StdDevDistance: -1,
 					ProposerDelay:  ptr(time.Duration(1 * time.Second)),
@@ -1136,6 +1144,7 @@ func TestLastCommitMetrics(t *testing.T) {
 				"76616C33": {
 					Timestamp:      baseTime.Add(2 * time.Second),
 					Status:         bfttypes.BlockIDFlagCommit,
+					AbsoluteDelay:  2 * time.Second,
 					RelativeDelay:  2 * time.Second,
 					StdDevDistance: 1,
 					ReactionTime:   2 * time.Second,
