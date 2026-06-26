@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 	bfttypes "github.com/cometbft/cometbft/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -182,6 +183,30 @@ func (m *MockWriteAPI) SetWriteFailedCallback(_ influxdb2api.WriteFailedCallback
 
 func (m *MockWriteAPI) Flush() {
 	m.Called()
+}
+
+type captureWriteAPI struct {
+	points  []*influxwrite.Point
+	records []string
+	flushes int
+}
+
+func (m *captureWriteAPI) WritePoint(point *influxwrite.Point) {
+	m.points = append(m.points, point)
+}
+
+func (m *captureWriteAPI) WriteRecord(line string) {
+	m.records = append(m.records, line)
+}
+
+func (m *captureWriteAPI) Errors() <-chan error {
+	return make(chan error)
+}
+
+func (m *captureWriteAPI) SetWriteFailedCallback(_ influxdb2api.WriteFailedCallback) {}
+
+func (m *captureWriteAPI) Flush() {
+	m.flushes++
 }
 
 // MockWriteAPI is a mock implementation of influxdb2api.WriteAPIBlocking
@@ -648,6 +673,87 @@ func TestWriteInfluxPoints(t *testing.T) {
 // getMsgName returns a string representation of the message type
 func getMsgName(msg gogoproto.Message) string {
 	return fmt.Sprintf("%T", msg)
+}
+
+func TestNewBlockHandlerWithMetricsReportsEmptyBlockPerProposer(t *testing.T) {
+	logger := log.WithField("test", true)
+	writeAPI := &captureWriteAPI{}
+	handler := NewBlockHandlerWithMetrics(logger, "chain-test", writeAPI)
+
+	prevBlockTime := time.Unix(1_700_000_000, 0)
+	nextBlockTime := prevBlockTime.Add(1200 * time.Millisecond)
+	proposerAddress := bfttypes.Address([]byte("proposer1"))
+
+	err := handler(
+		NewBlockData{
+			Block: &bfttypes.Block{
+				Header: bfttypes.Header{
+					Height: 10,
+					Time:   prevBlockTime,
+				},
+				LastCommit: &bfttypes.Commit{},
+			},
+			BlockResults: &ctypes.ResultBlockResults{},
+		},
+		NewBlockData{
+			Block: &bfttypes.Block{
+				Header: bfttypes.Header{
+					Height:          11,
+					Time:            nextBlockTime,
+					ProposerAddress: proposerAddress,
+				},
+				LastCommit: &bfttypes.Commit{},
+			},
+			BlockResults: &ctypes.ResultBlockResults{},
+		},
+	)
+
+	require.NoError(t, err)
+	require.Equal(t, 1, writeAPI.flushes)
+
+	blockReport := requirePoint(t, writeAPI.points, "coremon_block_report")
+	require.Equal(t, proposerAddress.String(), pointTag(t, blockReport, "proposer"))
+	require.Equal(t, int64(0), pointField(t, blockReport, "txs"))
+	require.Equal(t, int64(1), pointField(t, blockReport, "empty_block"))
+}
+
+func requirePoint(t *testing.T, points []*influxwrite.Point, name string) *influxwrite.Point {
+	t.Helper()
+
+	for _, point := range points {
+		if point.Name() == name {
+			return point
+		}
+	}
+
+	require.Failf(t, "point not found", "measurement %q not found in %d points", name, len(points))
+	return nil
+}
+
+func pointTag(t *testing.T, point *influxwrite.Point, key string) string {
+	t.Helper()
+
+	for _, tag := range point.TagList() {
+		if tag.Key == key {
+			return tag.Value
+		}
+	}
+
+	require.Failf(t, "tag not found", "tag %q not found on %q", key, point.Name())
+	return ""
+}
+
+func pointField(t *testing.T, point *influxwrite.Point, key string) interface{} {
+	t.Helper()
+
+	for _, field := range point.FieldList() {
+		if field.Key == key {
+			return field.Value
+		}
+	}
+
+	require.Failf(t, "field not found", "field %q not found on %q", key, point.Name())
+	return nil
 }
 
 func TestComputeSortedValidatorSigs(t *testing.T) {

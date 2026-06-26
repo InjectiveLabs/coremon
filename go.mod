@@ -4,7 +4,7 @@ go 1.26.2
 
 require (
 	cosmossdk.io/math v1.5.3
-	github.com/InjectiveLabs/sdk-go v1.62.0
+	github.com/InjectiveLabs/sdk-go v1.63.0-rc2
 	github.com/avast/retry-go/v4 v4.7.0
 	github.com/cometbft/cometbft v1.0.1
 	github.com/cosmos/cosmos-sdk v0.50.14

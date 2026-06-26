@@ -578,6 +578,10 @@ func NewBlockHandlerWithMetrics(
 			p = p.AddField("txs_events", txEventsPerBlock)
 			p = p.AddField("block_events", blockEvents)
 
+			if txsInBlock == 0 {
+				p = p.AddField("empty_block", 1)
+			}
+
 			if txFeeCollected.IsPositive() {
 				txFeeCollectedFloat, _ := txFeeCollected.Float64()
 				p = p.AddField("txs_fee", txFeeCollectedFloat)
