@@ -64,3 +64,29 @@ You can set alternative locations for various system directories by using the fo
 
 * `/`: HOST_ROOT
 * `/proc/N/mountinfo`: HOST_PROC_MOUNTINFO
+
+## RFQ tracking
+
+Transactions calling the RFQ contract (directly, via authz, `MsgExecuteContractCompat` or the atomic RFQ proxy) are exported into:
+
+* `coremon_rfq_txs`: one point per RFQ tx. Tags: `official` (tx carries the r3 taker memo of FE / mobile), `source` (memo `c=`: `w` web, `m` mobile), `memo_fmt`, `kind`, `status`, `err_class`, `err`, `lat_bucket`, `taker`. Fields: `memo_latency_ms` / `memo_blocks_missed` (memo `t`, client timestamp), `rfq_id_latency_ms` / `rfq_id_blocks_missed` (`rfq_id` is the gateway ms timestamp of the RFQ request), `t_minus_rfq_id_ms` (only when both are set), `error`, `stale`, `late_by_ms` (stale rejections: how much sooner the tx had to land).
+* `coremon_rfq_quotes`: one point per quote result of `wasm-rfq-accept-quote` (per-quote rejections, incl. `late_by_ms`).
+* `coremon_wasm_errors`: every failed wasm tx, by contract, method and normalized innermost error (`err_tpl`).
+
+Blocks missed = `[inclusion height] - (N+1)`, where N is the latest block committed at the client timestamp.
+
+* `COREMON_RFQ_CONTRACTS` (`--rfq-contracts`): RFQ settlement contracts, comma-separated.
+* `COREMON_RFQ_PROXY_CONTRACTS` (`--rfq-proxy-contracts`): contracts wrapping RFQ `accept_quote`.
+* `COREMON_RFQ_ONLY` (`--rfq-only`): write only the three measurements above (no validator sets fetched), to backfill them without touching other stats.
+* `COREMON_STOP_HEIGHT` (`--stop-height`): lowest height for `--reverse`, the process idles after reaching it.
+
+Backfill example (RFQ contract was created at 168980334):
+
+```
+COREMON_RFQ_ONLY=true COREMON_STOP_HEIGHT=168980334 coremon process --reverse <height>
+```
+
+## Dashboards
+
+* `templates/errors.json`: `<codespace>:<code>` error names used by dashboards. Refresh from injective-core (`make gen-error-docs`) and regenerate with `go generate ./templates`.
+* `templates/rfq_dashboards.py`: generates `coremon_rfq.gen.json` (RFQ & WASM errors dashboard) and `coremon_rfq_row.gen.json` (RFQ latency row of the main dashboard).

@@ -1,0 +1,3882 @@
+[
+  {
+    "codespace": "06-solomachine",
+    "code": 2,
+    "description": "invalid header"
+  },
+  {
+    "codespace": "06-solomachine",
+    "code": 3,
+    "description": "invalid sequence"
+  },
+  {
+    "codespace": "06-solomachine",
+    "code": 4,
+    "description": "invalid signature and data"
+  },
+  {
+    "codespace": "06-solomachine",
+    "code": 5,
+    "description": "signature verification failed"
+  },
+  {
+    "codespace": "06-solomachine",
+    "code": 6,
+    "description": "invalid solo machine proof"
+  },
+  {
+    "codespace": "07-tendermint",
+    "code": 2,
+    "description": "invalid chain-id"
+  },
+  {
+    "codespace": "07-tendermint",
+    "code": 3,
+    "description": "invalid trusting period"
+  },
+  {
+    "codespace": "07-tendermint",
+    "code": 4,
+    "description": "invalid unbonding period"
+  },
+  {
+    "codespace": "07-tendermint",
+    "code": 5,
+    "description": "invalid header height"
+  },
+  {
+    "codespace": "07-tendermint",
+    "code": 6,
+    "description": "invalid header"
+  },
+  {
+    "codespace": "07-tendermint",
+    "code": 7,
+    "description": "invalid max clock drift"
+  },
+  {
+    "codespace": "07-tendermint",
+    "code": 8,
+    "description": "processed time not found"
+  },
+  {
+    "codespace": "07-tendermint",
+    "code": 9,
+    "description": "processed height not found"
+  },
+  {
+    "codespace": "07-tendermint",
+    "code": 10,
+    "description": "packet-specified delay period has not been reached"
+  },
+  {
+    "codespace": "07-tendermint",
+    "code": 11,
+    "description": "time since latest trusted state has passed the trusting period"
+  },
+  {
+    "codespace": "07-tendermint",
+    "code": 12,
+    "description": "time since latest trusted state has passed the unbonding period"
+  },
+  {
+    "codespace": "07-tendermint",
+    "code": 13,
+    "description": "invalid proof specs"
+  },
+  {
+    "codespace": "07-tendermint",
+    "code": 14,
+    "description": "invalid validator set"
+  },
+  {
+    "codespace": "08-cardano-probabilistic",
+    "code": 2,
+    "description": "invalid chain-id"
+  },
+  {
+    "codespace": "08-cardano-probabilistic",
+    "code": 3,
+    "description": "invalid trusting period"
+  },
+  {
+    "codespace": "08-cardano-probabilistic",
+    "code": 4,
+    "description": "invalid probabilistic header height"
+  },
+  {
+    "codespace": "08-cardano-probabilistic",
+    "code": 5,
+    "description": "invalid probabilistic header"
+  },
+  {
+    "codespace": "08-cardano-probabilistic",
+    "code": 6,
+    "description": "processed time not found"
+  },
+  {
+    "codespace": "08-cardano-probabilistic",
+    "code": 7,
+    "description": "processed height not found"
+  },
+  {
+    "codespace": "08-cardano-probabilistic",
+    "code": 8,
+    "description": "packet-specified delay period has not been reached"
+  },
+  {
+    "codespace": "08-cardano-probabilistic",
+    "code": 9,
+    "description": "time since latest trusted state has passed the trusting period"
+  },
+  {
+    "codespace": "08-cardano-probabilistic",
+    "code": 10,
+    "description": "invalid current epoch"
+  },
+  {
+    "codespace": "08-cardano-probabilistic",
+    "code": 12,
+    "description": "invalid security score"
+  },
+  {
+    "codespace": "08-cardano-probabilistic",
+    "code": 13,
+    "description": "invalid unique pool count"
+  },
+  {
+    "codespace": "08-cardano-probabilistic",
+    "code": 14,
+    "description": "invalid qualified unique stake basis points"
+  },
+  {
+    "codespace": "08-cardano-probabilistic",
+    "code": 15,
+    "description": "invalid accepted block"
+  },
+  {
+    "codespace": "08-cardano-probabilistic",
+    "code": 16,
+    "description": "invalid host state commitment evidence"
+  },
+  {
+    "codespace": "08-cardano-probabilistic",
+    "code": 17,
+    "description": "invalid timestamp"
+  },
+  {
+    "codespace": "08-cardano-probabilistic",
+    "code": 18,
+    "description": "not implemented"
+  },
+  {
+    "codespace": "08-cardano-probabilistic",
+    "code": 19,
+    "description": "invalid max clock drift"
+  },
+  {
+    "codespace": "auction",
+    "code": 1,
+    "description": "invalid bid denom"
+  },
+  {
+    "codespace": "auction",
+    "code": 2,
+    "description": "invalid bid round"
+  },
+  {
+    "codespace": "authz",
+    "code": 2,
+    "description": "authorization not found"
+  },
+  {
+    "codespace": "authz",
+    "code": 3,
+    "description": "expiration time of authorization should be more than current time"
+  },
+  {
+    "codespace": "authz",
+    "code": 4,
+    "description": "unknown authorization type"
+  },
+  {
+    "codespace": "authz",
+    "code": 5,
+    "description": "grant key not found"
+  },
+  {
+    "codespace": "authz",
+    "code": 6,
+    "description": "authorization expired"
+  },
+  {
+    "codespace": "authz",
+    "code": 7,
+    "description": "grantee and granter should be different"
+  },
+  {
+    "codespace": "authz",
+    "code": 9,
+    "description": "authorization can be given to msg with only one signer"
+  },
+  {
+    "codespace": "authz",
+    "code": 12,
+    "description": "max tokens should be positive"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 1,
+    "description": "owasm compilation failed"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 2,
+    "description": "bad wasm execution"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 3,
+    "description": "data source not found"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 4,
+    "description": "oracle script not found"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 5,
+    "description": "request not found"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 6,
+    "description": "raw request not found"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 7,
+    "description": "reporter not found"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 8,
+    "description": "result not found"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 9,
+    "description": "reporter already exists"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 10,
+    "description": "validator not requested"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 11,
+    "description": "validator already reported"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 12,
+    "description": "invalid report size"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 13,
+    "description": "reporter not authorized"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 14,
+    "description": "editor not authorized"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 16,
+    "description": "validator already active"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 17,
+    "description": "too soon to activate"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 18,
+    "description": "too long name"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 19,
+    "description": "too long description"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 20,
+    "description": "empty executable"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 21,
+    "description": "empty wasm code"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 22,
+    "description": "too large executable"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 23,
+    "description": "too large wasm code"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 24,
+    "description": "invalid min count"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 25,
+    "description": "invalid ask count"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 26,
+    "description": "too large calldata"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 27,
+    "description": "too long client id"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 28,
+    "description": "empty raw requests"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 29,
+    "description": "empty report"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 30,
+    "description": "duplicate external id"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 31,
+    "description": "too long schema"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 32,
+    "description": "too long url"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 33,
+    "description": "too large raw report data"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 34,
+    "description": "insufficient available validators"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 35,
+    "description": "cannot create with [do-not-modify] content"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 36,
+    "description": "cannot reference self as reporter"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 37,
+    "description": "obi decode failed"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 38,
+    "description": "uncompression failed"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 39,
+    "description": "request already expired"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 40,
+    "description": "bad drbg initialization"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 41,
+    "description": "max oracle channels"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 42,
+    "description": "invalid ICS20 version"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 43,
+    "description": "not enough fee"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 44,
+    "description": "invalid owasm gas"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 45,
+    "description": "sending oracle request via IBC is disabled"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 46,
+    "description": "invalid request key"
+  },
+  {
+    "codespace": "bandoracle",
+    "code": 47,
+    "description": "too long request key"
+  },
+  {
+    "codespace": "bank",
+    "code": 2,
+    "description": "no inputs to send transaction"
+  },
+  {
+    "codespace": "bank",
+    "code": 3,
+    "description": "no outputs to send transaction"
+  },
+  {
+    "codespace": "bank",
+    "code": 4,
+    "description": "sum inputs != sum outputs"
+  },
+  {
+    "codespace": "bank",
+    "code": 5,
+    "description": "send transactions are disabled"
+  },
+  {
+    "codespace": "bank",
+    "code": 6,
+    "description": "client denom metadata not found"
+  },
+  {
+    "codespace": "bank",
+    "code": 7,
+    "description": "invalid key"
+  },
+  {
+    "codespace": "bank",
+    "code": 8,
+    "description": "duplicate entry"
+  },
+  {
+    "codespace": "bank",
+    "code": 9,
+    "description": "multiple senders not allowed"
+  },
+  {
+    "codespace": "capability",
+    "code": 2,
+    "description": "capability name not valid"
+  },
+  {
+    "codespace": "capability",
+    "code": 3,
+    "description": "provided capability is nil"
+  },
+  {
+    "codespace": "capability",
+    "code": 4,
+    "description": "capability name already taken"
+  },
+  {
+    "codespace": "capability",
+    "code": 5,
+    "description": "given owner already claimed capability"
+  },
+  {
+    "codespace": "capability",
+    "code": 6,
+    "description": "capability not owned by module"
+  },
+  {
+    "codespace": "capability",
+    "code": 7,
+    "description": "capability not found"
+  },
+  {
+    "codespace": "capability",
+    "code": 8,
+    "description": "owners not found for capability"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 1,
+    "description": "stale report"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 2,
+    "description": "incomplete proposal"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 3,
+    "description": "repeated oracle address"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 4,
+    "description": "too many signers"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 5,
+    "description": "incorrect config"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 6,
+    "description": "config digest doesn't match"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 7,
+    "description": "wrong number of signatures"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 8,
+    "description": "incorrect signature"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 9,
+    "description": "no transmitter specified"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 10,
+    "description": "incorrect transmission data"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 11,
+    "description": "no transmissions found"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 12,
+    "description": "median value is out of bounds"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 13,
+    "description": "LINK denom doesn't match"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 14,
+    "description": "Reward Pool doesn't exist"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 15,
+    "description": "wrong number of payees and transmitters"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 16,
+    "description": "action is restricted to the module admin"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 17,
+    "description": "feed already exists"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 19,
+    "description": "feed doesnt exists"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 20,
+    "description": "action is admin-restricted"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 21,
+    "description": "insufficient reward pool"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 22,
+    "description": "payee already set"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 23,
+    "description": "action is payee-restricted"
+  },
+  {
+    "codespace": "chainlink",
+    "code": 24,
+    "description": "feed config not found"
+  },
+  {
+    "codespace": "channel",
+    "code": 2,
+    "description": "channel already exists"
+  },
+  {
+    "codespace": "channel",
+    "code": 3,
+    "description": "channel not found"
+  },
+  {
+    "codespace": "channel",
+    "code": 4,
+    "description": "invalid channel"
+  },
+  {
+    "codespace": "channel",
+    "code": 5,
+    "description": "invalid channel state"
+  },
+  {
+    "codespace": "channel",
+    "code": 6,
+    "description": "invalid channel ordering"
+  },
+  {
+    "codespace": "channel",
+    "code": 7,
+    "description": "invalid counterparty channel"
+  },
+  {
+    "codespace": "channel",
+    "code": 8,
+    "description": "invalid channel capability"
+  },
+  {
+    "codespace": "channel",
+    "code": 9,
+    "description": "channel capability not found"
+  },
+  {
+    "codespace": "channel",
+    "code": 10,
+    "description": "sequence send not found"
+  },
+  {
+    "codespace": "channel",
+    "code": 11,
+    "description": "sequence receive not found"
+  },
+  {
+    "codespace": "channel",
+    "code": 12,
+    "description": "sequence acknowledgement not found"
+  },
+  {
+    "codespace": "channel",
+    "code": 13,
+    "description": "invalid packet"
+  },
+  {
+    "codespace": "channel",
+    "code": 14,
+    "description": "packet timeout"
+  },
+  {
+    "codespace": "channel",
+    "code": 15,
+    "description": "too many connection hops"
+  },
+  {
+    "codespace": "channel",
+    "code": 16,
+    "description": "invalid acknowledgement"
+  },
+  {
+    "codespace": "channel",
+    "code": 17,
+    "description": "acknowledgement for packet already exists"
+  },
+  {
+    "codespace": "channel",
+    "code": 18,
+    "description": "invalid channel identifier"
+  },
+  {
+    "codespace": "channel",
+    "code": 19,
+    "description": "packet already received"
+  },
+  {
+    "codespace": "channel",
+    "code": 20,
+    "description": "packet commitment not found"
+  },
+  {
+    "codespace": "channel",
+    "code": 21,
+    "description": "packet sequence is out of order"
+  },
+  {
+    "codespace": "channel",
+    "code": 22,
+    "description": "packet messages are redundant"
+  },
+  {
+    "codespace": "channel",
+    "code": 23,
+    "description": "message is redundant, no-op will be performed"
+  },
+  {
+    "codespace": "channel",
+    "code": 24,
+    "description": "invalid channel version"
+  },
+  {
+    "codespace": "channel",
+    "code": 25,
+    "description": "packet has not been sent"
+  },
+  {
+    "codespace": "channel",
+    "code": 26,
+    "description": "invalid packet timeout"
+  },
+  {
+    "codespace": "channel",
+    "code": 27,
+    "description": "upgrade error receipt not found"
+  },
+  {
+    "codespace": "channel",
+    "code": 28,
+    "description": "invalid upgrade"
+  },
+  {
+    "codespace": "channel",
+    "code": 29,
+    "description": "invalid upgrade sequence"
+  },
+  {
+    "codespace": "channel",
+    "code": 30,
+    "description": "upgrade not found"
+  },
+  {
+    "codespace": "channel",
+    "code": 31,
+    "description": "incompatible counterparty upgrade"
+  },
+  {
+    "codespace": "channel",
+    "code": 32,
+    "description": "invalid upgrade error"
+  },
+  {
+    "codespace": "channel",
+    "code": 33,
+    "description": "restore failed"
+  },
+  {
+    "codespace": "channel",
+    "code": 34,
+    "description": "upgrade timed-out"
+  },
+  {
+    "codespace": "channel",
+    "code": 35,
+    "description": "upgrade timeout is invalid"
+  },
+  {
+    "codespace": "channel",
+    "code": 36,
+    "description": "pending inflight packets exist"
+  },
+  {
+    "codespace": "channel",
+    "code": 37,
+    "description": "upgrade timeout failed"
+  },
+  {
+    "codespace": "channel",
+    "code": 38,
+    "description": "invalid pruning limit"
+  },
+  {
+    "codespace": "channel",
+    "code": 39,
+    "description": "timeout not reached"
+  },
+  {
+    "codespace": "channel",
+    "code": 40,
+    "description": "timeout elapsed"
+  },
+  {
+    "codespace": "channel",
+    "code": 41,
+    "description": "pruning sequence start not found"
+  },
+  {
+    "codespace": "channel",
+    "code": 42,
+    "description": "recv start sequence not found"
+  },
+  {
+    "codespace": "client",
+    "code": 2,
+    "description": "light client already exists"
+  },
+  {
+    "codespace": "client",
+    "code": 3,
+    "description": "light client is invalid"
+  },
+  {
+    "codespace": "client",
+    "code": 4,
+    "description": "light client not found"
+  },
+  {
+    "codespace": "client",
+    "code": 5,
+    "description": "light client is frozen due to misbehaviour"
+  },
+  {
+    "codespace": "client",
+    "code": 6,
+    "description": "invalid client metadata"
+  },
+  {
+    "codespace": "client",
+    "code": 7,
+    "description": "consensus state not found"
+  },
+  {
+    "codespace": "client",
+    "code": 8,
+    "description": "invalid consensus state"
+  },
+  {
+    "codespace": "client",
+    "code": 9,
+    "description": "client type not found"
+  },
+  {
+    "codespace": "client",
+    "code": 10,
+    "description": "invalid client type"
+  },
+  {
+    "codespace": "client",
+    "code": 11,
+    "description": "commitment root not found"
+  },
+  {
+    "codespace": "client",
+    "code": 12,
+    "description": "invalid client header"
+  },
+  {
+    "codespace": "client",
+    "code": 13,
+    "description": "invalid light client misbehaviour"
+  },
+  {
+    "codespace": "client",
+    "code": 14,
+    "description": "client state verification failed"
+  },
+  {
+    "codespace": "client",
+    "code": 15,
+    "description": "client consensus state verification failed"
+  },
+  {
+    "codespace": "client",
+    "code": 16,
+    "description": "connection state verification failed"
+  },
+  {
+    "codespace": "client",
+    "code": 17,
+    "description": "channel state verification failed"
+  },
+  {
+    "codespace": "client",
+    "code": 18,
+    "description": "packet commitment verification failed"
+  },
+  {
+    "codespace": "client",
+    "code": 19,
+    "description": "packet acknowledgement verification failed"
+  },
+  {
+    "codespace": "client",
+    "code": 20,
+    "description": "packet receipt verification failed"
+  },
+  {
+    "codespace": "client",
+    "code": 21,
+    "description": "next sequence receive verification failed"
+  },
+  {
+    "codespace": "client",
+    "code": 22,
+    "description": "self consensus state not found"
+  },
+  {
+    "codespace": "client",
+    "code": 23,
+    "description": "unable to update light client"
+  },
+  {
+    "codespace": "client",
+    "code": 24,
+    "description": "invalid recovery client"
+  },
+  {
+    "codespace": "client",
+    "code": 25,
+    "description": "invalid client upgrade"
+  },
+  {
+    "codespace": "client",
+    "code": 26,
+    "description": "invalid height"
+  },
+  {
+    "codespace": "client",
+    "code": 27,
+    "description": "invalid client state substitute"
+  },
+  {
+    "codespace": "client",
+    "code": 28,
+    "description": "invalid upgrade proposal"
+  },
+  {
+    "codespace": "client",
+    "code": 29,
+    "description": "client state is not active"
+  },
+  {
+    "codespace": "client",
+    "code": 30,
+    "description": "membership verification failed"
+  },
+  {
+    "codespace": "client",
+    "code": 31,
+    "description": "non-membership verification failed"
+  },
+  {
+    "codespace": "client",
+    "code": 32,
+    "description": "client type not supported"
+  },
+  {
+    "codespace": "commitment",
+    "code": 2,
+    "description": "invalid proof"
+  },
+  {
+    "codespace": "commitment",
+    "code": 3,
+    "description": "invalid prefix"
+  },
+  {
+    "codespace": "commitment",
+    "code": 4,
+    "description": "invalid merkle proof"
+  },
+  {
+    "codespace": "connection",
+    "code": 2,
+    "description": "connection already exists"
+  },
+  {
+    "codespace": "connection",
+    "code": 3,
+    "description": "connection not found"
+  },
+  {
+    "codespace": "connection",
+    "code": 4,
+    "description": "light client connection paths not found"
+  },
+  {
+    "codespace": "connection",
+    "code": 5,
+    "description": "connection path is not associated to the given light client"
+  },
+  {
+    "codespace": "connection",
+    "code": 6,
+    "description": "invalid connection state"
+  },
+  {
+    "codespace": "connection",
+    "code": 7,
+    "description": "invalid counterparty connection"
+  },
+  {
+    "codespace": "connection",
+    "code": 8,
+    "description": "invalid connection"
+  },
+  {
+    "codespace": "connection",
+    "code": 9,
+    "description": "invalid connection version"
+  },
+  {
+    "codespace": "connection",
+    "code": 10,
+    "description": "connection version negotiation failed"
+  },
+  {
+    "codespace": "connection",
+    "code": 11,
+    "description": "invalid connection identifier"
+  },
+  {
+    "codespace": "crisis",
+    "code": 2,
+    "description": "sender address is empty"
+  },
+  {
+    "codespace": "crisis",
+    "code": 3,
+    "description": "unknown invariant"
+  },
+  {
+    "codespace": "distribution",
+    "code": 2,
+    "description": "delegator address is empty"
+  },
+  {
+    "codespace": "distribution",
+    "code": 3,
+    "description": "withdraw address is empty"
+  },
+  {
+    "codespace": "distribution",
+    "code": 4,
+    "description": "validator address is empty"
+  },
+  {
+    "codespace": "distribution",
+    "code": 5,
+    "description": "no delegation distribution info"
+  },
+  {
+    "codespace": "distribution",
+    "code": 6,
+    "description": "no validator distribution info"
+  },
+  {
+    "codespace": "distribution",
+    "code": 7,
+    "description": "no validator commission to withdraw"
+  },
+  {
+    "codespace": "distribution",
+    "code": 8,
+    "description": "set withdraw address disabled"
+  },
+  {
+    "codespace": "distribution",
+    "code": 9,
+    "description": "community pool does not have sufficient coins to distribute"
+  },
+  {
+    "codespace": "distribution",
+    "code": 10,
+    "description": "invalid community pool spend proposal amount"
+  },
+  {
+    "codespace": "distribution",
+    "code": 11,
+    "description": "invalid community pool spend proposal recipient"
+  },
+  {
+    "codespace": "distribution",
+    "code": 12,
+    "description": "validator does not exist"
+  },
+  {
+    "codespace": "distribution",
+    "code": 13,
+    "description": "delegation does not exist"
+  },
+  {
+    "codespace": "erc20",
+    "code": 2,
+    "description": "attempting to create a token pair for bank denom that already has a pair associated"
+  },
+  {
+    "codespace": "erc20",
+    "code": 3,
+    "description": "unauthorized account"
+  },
+  {
+    "codespace": "erc20",
+    "code": 4,
+    "description": "invalid genesis"
+  },
+  {
+    "codespace": "erc20",
+    "code": 5,
+    "description": "invalid token pair"
+  },
+  {
+    "codespace": "erc20",
+    "code": 6,
+    "description": "invalid ERC20 contract address"
+  },
+  {
+    "codespace": "erc20",
+    "code": 7,
+    "description": "unknown bank denom or zero supply"
+  },
+  {
+    "codespace": "erc20",
+    "code": 8,
+    "description": "error uploading ERC20 contract"
+  },
+  {
+    "codespace": "erc20",
+    "code": 9,
+    "description": "invalid token factory denom"
+  },
+  {
+    "codespace": "erc20",
+    "code": 10,
+    "description": "respective erc20:... denom has existing supply"
+  },
+  {
+    "codespace": "erc20",
+    "code": 11,
+    "description": "invalid query request"
+  },
+  {
+    "codespace": "erc20",
+    "code": 12,
+    "description": "can't charge denom creation fee"
+  },
+  {
+    "codespace": "evidence",
+    "code": 2,
+    "description": "unregistered handler for evidence type"
+  },
+  {
+    "codespace": "evidence",
+    "code": 3,
+    "description": "invalid evidence"
+  },
+  {
+    "codespace": "evidence",
+    "code": 5,
+    "description": "evidence already exists"
+  },
+  {
+    "codespace": "evm",
+    "code": 2,
+    "description": "invalid storage state"
+  },
+  {
+    "codespace": "evm",
+    "code": 3,
+    "description": "execution reverted"
+  },
+  {
+    "codespace": "evm",
+    "code": 4,
+    "description": "chain configuration not found"
+  },
+  {
+    "codespace": "evm",
+    "code": 5,
+    "description": "invalid chain configuration"
+  },
+  {
+    "codespace": "evm",
+    "code": 6,
+    "description": "invalid zero address"
+  },
+  {
+    "codespace": "evm",
+    "code": 7,
+    "description": "empty hash"
+  },
+  {
+    "codespace": "evm",
+    "code": 8,
+    "description": "block bloom not found"
+  },
+  {
+    "codespace": "evm",
+    "code": 9,
+    "description": "transaction receipt not found"
+  },
+  {
+    "codespace": "evm",
+    "code": 10,
+    "description": "EVM Create operation is disabled"
+  },
+  {
+    "codespace": "evm",
+    "code": 11,
+    "description": "EVM Call operation is disabled"
+  },
+  {
+    "codespace": "evm",
+    "code": 12,
+    "description": "invalid transaction amount"
+  },
+  {
+    "codespace": "evm",
+    "code": 13,
+    "description": "invalid gas price"
+  },
+  {
+    "codespace": "evm",
+    "code": 14,
+    "description": "invalid gas fee"
+  },
+  {
+    "codespace": "evm",
+    "code": 15,
+    "description": "evm transaction execution failed"
+  },
+  {
+    "codespace": "evm",
+    "code": 16,
+    "description": "invalid gas refund amount"
+  },
+  {
+    "codespace": "evm",
+    "code": 17,
+    "description": "inconsistent gas"
+  },
+  {
+    "codespace": "evm",
+    "code": 18,
+    "description": "invalid gas cap"
+  },
+  {
+    "codespace": "evm",
+    "code": 19,
+    "description": "invalid base fee"
+  },
+  {
+    "codespace": "evm",
+    "code": 20,
+    "description": "gas computation overflow/underflow"
+  },
+  {
+    "codespace": "evm",
+    "code": 21,
+    "description": "account type is not a valid ethereum account"
+  },
+  {
+    "codespace": "evm",
+    "code": 22,
+    "description": "invalid gas limit"
+  },
+  {
+    "codespace": "evm",
+    "code": 23,
+    "description": "failed to apply state override"
+  },
+  {
+    "codespace": "evm",
+    "code": 24,
+    "description": "EVM Create operation is not authorized for user"
+  },
+  {
+    "codespace": "evm",
+    "code": 25,
+    "description": "address is not allowed to receive funds"
+  },
+  {
+    "codespace": "exchange",
+    "code": 1,
+    "description": "failed to validate order"
+  },
+  {
+    "codespace": "exchange",
+    "code": 2,
+    "description": "spot market not found"
+  },
+  {
+    "codespace": "exchange",
+    "code": 3,
+    "description": "spot market exists"
+  },
+  {
+    "codespace": "exchange",
+    "code": 4,
+    "description": "struct field error"
+  },
+  {
+    "codespace": "exchange",
+    "code": 5,
+    "description": "failed to validate market"
+  },
+  {
+    "codespace": "exchange",
+    "code": 6,
+    "description": "subaccount has insufficient deposits"
+  },
+  {
+    "codespace": "exchange",
+    "code": 7,
+    "description": "unrecognized order type"
+  },
+  {
+    "codespace": "exchange",
+    "code": 8,
+    "description": "position quantity insufficient for order"
+  },
+  {
+    "codespace": "exchange",
+    "code": 9,
+    "description": "order hash is not valid"
+  },
+  {
+    "codespace": "exchange",
+    "code": 10,
+    "description": "subaccount id is not valid"
+  },
+  {
+    "codespace": "exchange",
+    "code": 11,
+    "description": "invalid ticker"
+  },
+  {
+    "codespace": "exchange",
+    "code": 12,
+    "description": "invalid base denom"
+  },
+  {
+    "codespace": "exchange",
+    "code": 13,
+    "description": "invalid quote denom"
+  },
+  {
+    "codespace": "exchange",
+    "code": 14,
+    "description": "invalid oracle"
+  },
+  {
+    "codespace": "exchange",
+    "code": 15,
+    "description": "invalid expiry"
+  },
+  {
+    "codespace": "exchange",
+    "code": 16,
+    "description": "invalid price"
+  },
+  {
+    "codespace": "exchange",
+    "code": 17,
+    "description": "invalid quantity"
+  },
+  {
+    "codespace": "exchange",
+    "code": 18,
+    "description": "unsupported oracle type"
+  },
+  {
+    "codespace": "exchange",
+    "code": 19,
+    "description": "order doesnt exist"
+  },
+  {
+    "codespace": "exchange",
+    "code": 20,
+    "description": "spot limit orderbook fill invalid"
+  },
+  {
+    "codespace": "exchange",
+    "code": 21,
+    "description": "perpetual market exists"
+  },
+  {
+    "codespace": "exchange",
+    "code": 22,
+    "description": "expiry futures market exists"
+  },
+  {
+    "codespace": "exchange",
+    "code": 23,
+    "description": "expiry futures market expired"
+  },
+  {
+    "codespace": "exchange",
+    "code": 24,
+    "description": "no liquidity on the orderbook!"
+  },
+  {
+    "codespace": "exchange",
+    "code": 25,
+    "description": "orderbook liquidity cannot satisfy current worst price"
+  },
+  {
+    "codespace": "exchange",
+    "code": 26,
+    "description": "insufficient margin"
+  },
+  {
+    "codespace": "exchange",
+    "code": 27,
+    "description": "derivative market not found"
+  },
+  {
+    "codespace": "exchange",
+    "code": 28,
+    "description": "position not found"
+  },
+  {
+    "codespace": "exchange",
+    "code": 29,
+    "description": "position direction does not oppose the reduce-only order"
+  },
+  {
+    "codespace": "exchange",
+    "code": 30,
+    "description": "price Surpasses Bankruptcy Price"
+  },
+  {
+    "codespace": "exchange",
+    "code": 31,
+    "description": "position not liquidable"
+  },
+  {
+    "codespace": "exchange",
+    "code": 32,
+    "description": "invalid trigger price"
+  },
+  {
+    "codespace": "exchange",
+    "code": 33,
+    "description": "invalid oracle type"
+  },
+  {
+    "codespace": "exchange",
+    "code": 34,
+    "description": "invalid minimum price tick size"
+  },
+  {
+    "codespace": "exchange",
+    "code": 35,
+    "description": "invalid minimum quantity tick size"
+  },
+  {
+    "codespace": "exchange",
+    "code": 36,
+    "description": "invalid minimum order margin"
+  },
+  {
+    "codespace": "exchange",
+    "code": 37,
+    "description": "exceeds order side count"
+  },
+  {
+    "codespace": "exchange",
+    "code": 38,
+    "description": "subaccount cannot place a market order when a market order in the same market was already placed in same block"
+  },
+  {
+    "codespace": "exchange",
+    "code": 39,
+    "description": "cannot place a conditional market order when a conditional market order in same relative direction already exists"
+  },
+  {
+    "codespace": "exchange",
+    "code": 40,
+    "description": "equivalent market launch proposal already exists"
+  },
+  {
+    "codespace": "exchange",
+    "code": 41,
+    "description": "invalid market status"
+  },
+  {
+    "codespace": "exchange",
+    "code": 42,
+    "description": "base denom cannot be same with quote denom"
+  },
+  {
+    "codespace": "exchange",
+    "code": 43,
+    "description": "oracle base cannot be same with oracle quote"
+  },
+  {
+    "codespace": "exchange",
+    "code": 44,
+    "description": "makerFeeRate does not match TakerFeeRate requirements"
+  },
+  {
+    "codespace": "exchange",
+    "code": 45,
+    "description": "ensure that MaintenanceMarginRatio < InitialMarginRatio <= ReduceMarginRatio"
+  },
+  {
+    "codespace": "exchange",
+    "code": 46,
+    "description": "oracleScaleFactor cannot be greater than MaxOracleScaleFactor"
+  },
+  {
+    "codespace": "exchange",
+    "code": 47,
+    "description": "spot exchange is not enabled yet"
+  },
+  {
+    "codespace": "exchange",
+    "code": 48,
+    "description": "derivatives exchange is not enabled yet"
+  },
+  {
+    "codespace": "exchange",
+    "code": 49,
+    "description": "oracle price delta exceeds threshold"
+  },
+  {
+    "codespace": "exchange",
+    "code": 50,
+    "description": "invalid hourly interest rate"
+  },
+  {
+    "codespace": "exchange",
+    "code": 51,
+    "description": "invalid hourly funding rate cap"
+  },
+  {
+    "codespace": "exchange",
+    "code": 52,
+    "description": "only perpetual markets can update funding parameters"
+  },
+  {
+    "codespace": "exchange",
+    "code": 53,
+    "description": "invalid trading reward campaign"
+  },
+  {
+    "codespace": "exchange",
+    "code": 54,
+    "description": "invalid fee discount schedule"
+  },
+  {
+    "codespace": "exchange",
+    "code": 55,
+    "description": "invalid liquidation order"
+  },
+  {
+    "codespace": "exchange",
+    "code": 56,
+    "description": "unknown error happened for campaign distributions"
+  },
+  {
+    "codespace": "exchange",
+    "code": 57,
+    "description": "invalid trading reward points update"
+  },
+  {
+    "codespace": "exchange",
+    "code": 58,
+    "description": "invalid batch msg update"
+  },
+  {
+    "codespace": "exchange",
+    "code": 59,
+    "description": "post-only order exceeds top of book price"
+  },
+  {
+    "codespace": "exchange",
+    "code": 60,
+    "description": "order type not supported for given message"
+  },
+  {
+    "codespace": "exchange",
+    "code": 61,
+    "description": "sender must match dmm account"
+  },
+  {
+    "codespace": "exchange",
+    "code": 62,
+    "description": "already opted out of rewards"
+  },
+  {
+    "codespace": "exchange",
+    "code": 63,
+    "description": "invalid margin ratio"
+  },
+  {
+    "codespace": "exchange",
+    "code": 64,
+    "description": "provided funds are below minimum"
+  },
+  {
+    "codespace": "exchange",
+    "code": 65,
+    "description": "position margin is below the required threshold"
+  },
+  {
+    "codespace": "exchange",
+    "code": 66,
+    "description": "pool has non-positive total lp token supply"
+  },
+  {
+    "codespace": "exchange",
+    "code": 67,
+    "description": "passed lp token burn amount is greater than total lp token supply"
+  },
+  {
+    "codespace": "exchange",
+    "code": 68,
+    "description": "unsupported action"
+  },
+  {
+    "codespace": "exchange",
+    "code": 69,
+    "description": "position quantity cannot be negative"
+  },
+  {
+    "codespace": "exchange",
+    "code": 70,
+    "description": "binary options market exists"
+  },
+  {
+    "codespace": "exchange",
+    "code": 71,
+    "description": "binary options market not found"
+  },
+  {
+    "codespace": "exchange",
+    "code": 72,
+    "description": "invalid settlement"
+  },
+  {
+    "codespace": "exchange",
+    "code": 73,
+    "description": "account doesnt exist"
+  },
+  {
+    "codespace": "exchange",
+    "code": 74,
+    "description": "sender should be a market admin"
+  },
+  {
+    "codespace": "exchange",
+    "code": 75,
+    "description": "market is already scheduled to settle"
+  },
+  {
+    "codespace": "exchange",
+    "code": 76,
+    "description": "market not found"
+  },
+  {
+    "codespace": "exchange",
+    "code": 77,
+    "description": "denom decimal should be greater than 0 and not greater than max scale factor"
+  },
+  {
+    "codespace": "exchange",
+    "code": 78,
+    "description": "state is invalid"
+  },
+  {
+    "codespace": "exchange",
+    "code": 79,
+    "description": "transient orders up to cancellation not supported"
+  },
+  {
+    "codespace": "exchange",
+    "code": 80,
+    "description": "invalid trade"
+  },
+  {
+    "codespace": "exchange",
+    "code": 81,
+    "description": "no margin locked in subaccount"
+  },
+  {
+    "codespace": "exchange",
+    "code": 82,
+    "description": "invalid access level to perform action"
+  },
+  {
+    "codespace": "exchange",
+    "code": 83,
+    "description": "invalid address"
+  },
+  {
+    "codespace": "exchange",
+    "code": 84,
+    "description": "invalid argument"
+  },
+  {
+    "codespace": "exchange",
+    "code": 85,
+    "description": "invalid funds direction"
+  },
+  {
+    "codespace": "exchange",
+    "code": 86,
+    "description": "no funds provided"
+  },
+  {
+    "codespace": "exchange",
+    "code": 87,
+    "description": "invalid signature"
+  },
+  {
+    "codespace": "exchange",
+    "code": 88,
+    "description": "no funds to unlock"
+  },
+  {
+    "codespace": "exchange",
+    "code": 89,
+    "description": "no msgs provided"
+  },
+  {
+    "codespace": "exchange",
+    "code": 90,
+    "description": "no msg provided"
+  },
+  {
+    "codespace": "exchange",
+    "code": 91,
+    "description": "invalid amount"
+  },
+  {
+    "codespace": "exchange",
+    "code": 92,
+    "description": "The current feature has been disabled"
+  },
+  {
+    "codespace": "exchange",
+    "code": 93,
+    "description": "order has too much margin"
+  },
+  {
+    "codespace": "exchange",
+    "code": 94,
+    "description": "subaccount nonce is invalid"
+  },
+  {
+    "codespace": "exchange",
+    "code": 95,
+    "description": "insufficient funds"
+  },
+  {
+    "codespace": "exchange",
+    "code": 96,
+    "description": "exchange is in post-only mode"
+  },
+  {
+    "codespace": "exchange",
+    "code": 97,
+    "description": "client order id already exists"
+  },
+  {
+    "codespace": "exchange",
+    "code": 98,
+    "description": "client order id is invalid. Max length is 36 chars"
+  },
+  {
+    "codespace": "exchange",
+    "code": 99,
+    "description": "market cannot be settled in emergency mode"
+  },
+  {
+    "codespace": "exchange",
+    "code": 100,
+    "description": "invalid notional"
+  },
+  {
+    "codespace": "exchange",
+    "code": 101,
+    "description": "stale oracle price"
+  },
+  {
+    "codespace": "exchange",
+    "code": 102,
+    "description": "invalid stake grant"
+  },
+  {
+    "codespace": "exchange",
+    "code": 103,
+    "description": "insufficient stake for grant"
+  },
+  {
+    "codespace": "exchange",
+    "code": 104,
+    "description": "invalid permissions"
+  },
+  {
+    "codespace": "exchange",
+    "code": 105,
+    "description": "the decimals specified for the denom is incorrect"
+  },
+  {
+    "codespace": "exchange",
+    "code": 106,
+    "description": "insufficient market balance"
+  },
+  {
+    "codespace": "exchange",
+    "code": 107,
+    "description": "invalid expiration block"
+  },
+  {
+    "codespace": "exchange",
+    "code": 108,
+    "description": "v1 perpetual and expiry market launch proposal is not supported"
+  },
+  {
+    "codespace": "exchange",
+    "code": 109,
+    "description": "position not offsettable"
+  },
+  {
+    "codespace": "exchange",
+    "code": 110,
+    "description": "offsetting subaccount IDs cannot be empty"
+  },
+  {
+    "codespace": "exchange",
+    "code": 111,
+    "description": "invalid open notional cap"
+  },
+  {
+    "codespace": "exchange",
+    "code": 112,
+    "description": "open notional cap breached"
+  },
+  {
+    "codespace": "exchange",
+    "code": 113,
+    "description": "no valid offsetting positions found"
+  },
+  {
+    "codespace": "exchange",
+    "code": 114,
+    "description": "targeted market is not the canonical liquidation target"
+  },
+  {
+    "codespace": "exchange",
+    "code": 115,
+    "description": "message type is deprecated"
+  },
+  {
+    "codespace": "exchange",
+    "code": 116,
+    "description": "cross-margin subaccount has reached the per-denom spot order cap"
+  },
+  {
+    "codespace": "exchange",
+    "code": 117,
+    "description": "spot swap is disabled"
+  },
+  {
+    "codespace": "exchange",
+    "code": 118,
+    "description": "invalid swap route"
+  },
+  {
+    "codespace": "exchange",
+    "code": 119,
+    "description": "swap deadline exceeded"
+  },
+  {
+    "codespace": "exchange",
+    "code": 120,
+    "description": "swap output below minimum"
+  },
+  {
+    "codespace": "exchange",
+    "code": 121,
+    "description": "pool-funded cross-margin close cannot rest on the orderbook"
+  },
+  {
+    "codespace": "exchange",
+    "code": 122,
+    "description": "RFQ partial may draw insurance only when the remaining pool positions hold no positive mark equity"
+  },
+  {
+    "codespace": "exchange",
+    "code": 123,
+    "description": "inactive cross-margin legs may be scheduled for settlement only when the active pool positions hold no positive mark equity"
+  },
+  {
+    "codespace": "exchange",
+    "code": 124,
+    "description": "a partial RFQ slice may pay below the exact-mark payout only while the pool has no mark shortfall after it"
+  },
+  {
+    "codespace": "exchange",
+    "code": 125,
+    "description": "cross-exposed subaccount has reached the per-denom isolated active derivative market cap"
+  },
+  {
+    "codespace": "exchange",
+    "code": 126,
+    "description": "invalid reference price gate config"
+  },
+  {
+    "codespace": "exchange",
+    "code": 127,
+    "description": "unsupported reference price source"
+  },
+  {
+    "codespace": "exchange",
+    "code": 128,
+    "description": "position-opening fill rejected by reference price gate"
+  },
+  {
+    "codespace": "feegrant",
+    "code": 2,
+    "description": "fee limit exceeded"
+  },
+  {
+    "codespace": "feegrant",
+    "code": 3,
+    "description": "fee allowance expired"
+  },
+  {
+    "codespace": "feegrant",
+    "code": 4,
+    "description": "invalid duration"
+  },
+  {
+    "codespace": "feegrant",
+    "code": 5,
+    "description": "no allowance"
+  },
+  {
+    "codespace": "feegrant",
+    "code": 6,
+    "description": "allowed messages are empty"
+  },
+  {
+    "codespace": "feegrant",
+    "code": 7,
+    "description": "message not allowed"
+  },
+  {
+    "codespace": "feeibc",
+    "code": 2,
+    "description": "invalid ICS29 middleware version"
+  },
+  {
+    "codespace": "feeibc",
+    "code": 3,
+    "description": "no account found for given refund address"
+  },
+  {
+    "codespace": "feeibc",
+    "code": 4,
+    "description": "balance not found for given account address"
+  },
+  {
+    "codespace": "feeibc",
+    "code": 5,
+    "description": "there is no fee escrowed for the given packetID"
+  },
+  {
+    "codespace": "feeibc",
+    "code": 6,
+    "description": "relayers must not be set. This feature is not supported"
+  },
+  {
+    "codespace": "feeibc",
+    "code": 7,
+    "description": "counterparty payee must not be empty"
+  },
+  {
+    "codespace": "feeibc",
+    "code": 8,
+    "description": "forward relayer address not found"
+  },
+  {
+    "codespace": "feeibc",
+    "code": 9,
+    "description": "fee module is not enabled for this channel. If this error occurs after channel setup, fee module may not be enabled"
+  },
+  {
+    "codespace": "feeibc",
+    "code": 10,
+    "description": "relayer address must be stored for async WriteAcknowledgement"
+  },
+  {
+    "codespace": "feeibc",
+    "code": 11,
+    "description": "the fee module is currently locked, a severe bug has been detected"
+  },
+  {
+    "codespace": "feeibc",
+    "code": 12,
+    "description": "unsupported action"
+  },
+  {
+    "codespace": "gov",
+    "code": 3,
+    "description": "inactive proposal"
+  },
+  {
+    "codespace": "gov",
+    "code": 4,
+    "description": "proposal already active"
+  },
+  {
+    "codespace": "gov",
+    "code": 5,
+    "description": "invalid proposal content"
+  },
+  {
+    "codespace": "gov",
+    "code": 6,
+    "description": "invalid proposal type"
+  },
+  {
+    "codespace": "gov",
+    "code": 7,
+    "description": "invalid vote option"
+  },
+  {
+    "codespace": "gov",
+    "code": 8,
+    "description": "invalid genesis state"
+  },
+  {
+    "codespace": "gov",
+    "code": 9,
+    "description": "no handler exists for proposal type"
+  },
+  {
+    "codespace": "gov",
+    "code": 10,
+    "description": "proposal message not recognized by router"
+  },
+  {
+    "codespace": "gov",
+    "code": 11,
+    "description": "no messages proposed"
+  },
+  {
+    "codespace": "gov",
+    "code": 12,
+    "description": "invalid proposal message"
+  },
+  {
+    "codespace": "gov",
+    "code": 13,
+    "description": "expected gov account as only signer for proposal message"
+  },
+  {
+    "codespace": "gov",
+    "code": 15,
+    "description": "metadata too long"
+  },
+  {
+    "codespace": "gov",
+    "code": 16,
+    "description": "minimum deposit is too small"
+  },
+  {
+    "codespace": "gov",
+    "code": 18,
+    "description": "invalid proposer"
+  },
+  {
+    "codespace": "gov",
+    "code": 20,
+    "description": "voting period already ended"
+  },
+  {
+    "codespace": "gov",
+    "code": 21,
+    "description": "invalid proposal"
+  },
+  {
+    "codespace": "gov",
+    "code": 22,
+    "description": "summary too long"
+  },
+  {
+    "codespace": "gov",
+    "code": 23,
+    "description": "invalid deposit denom"
+  },
+  {
+    "codespace": "group",
+    "code": 2,
+    "description": "value is empty"
+  },
+  {
+    "codespace": "group",
+    "code": 3,
+    "description": "duplicate value"
+  },
+  {
+    "codespace": "group",
+    "code": 4,
+    "description": "limit exceeded"
+  },
+  {
+    "codespace": "group",
+    "code": 5,
+    "description": "invalid type"
+  },
+  {
+    "codespace": "group",
+    "code": 6,
+    "description": "invalid value"
+  },
+  {
+    "codespace": "group",
+    "code": 7,
+    "description": "unauthorized"
+  },
+  {
+    "codespace": "group",
+    "code": 8,
+    "description": "modified"
+  },
+  {
+    "codespace": "group",
+    "code": 9,
+    "description": "expired"
+  },
+  {
+    "codespace": "host",
+    "code": 2,
+    "description": "invalid identifier"
+  },
+  {
+    "codespace": "host",
+    "code": 3,
+    "description": "invalid path"
+  },
+  {
+    "codespace": "host",
+    "code": 4,
+    "description": "invalid packet"
+  },
+  {
+    "codespace": "ibc",
+    "code": 1,
+    "description": "invalid sequence"
+  },
+  {
+    "codespace": "ibc",
+    "code": 2,
+    "description": "unauthorized"
+  },
+  {
+    "codespace": "ibc",
+    "code": 3,
+    "description": "insufficient funds"
+  },
+  {
+    "codespace": "ibc",
+    "code": 4,
+    "description": "unknown request"
+  },
+  {
+    "codespace": "ibc",
+    "code": 5,
+    "description": "invalid address"
+  },
+  {
+    "codespace": "ibc",
+    "code": 6,
+    "description": "invalid coins"
+  },
+  {
+    "codespace": "ibc",
+    "code": 7,
+    "description": "out of gas"
+  },
+  {
+    "codespace": "ibc",
+    "code": 8,
+    "description": "invalid request"
+  },
+  {
+    "codespace": "ibc",
+    "code": 9,
+    "description": "invalid height"
+  },
+  {
+    "codespace": "ibc",
+    "code": 10,
+    "description": "invalid version"
+  },
+  {
+    "codespace": "ibc",
+    "code": 11,
+    "description": "invalid chain-id"
+  },
+  {
+    "codespace": "ibc",
+    "code": 12,
+    "description": "invalid type"
+  },
+  {
+    "codespace": "ibc",
+    "code": 13,
+    "description": "failed packing protobuf message to Any"
+  },
+  {
+    "codespace": "ibc",
+    "code": 14,
+    "description": "failed unpacking protobuf message from Any"
+  },
+  {
+    "codespace": "ibc",
+    "code": 15,
+    "description": "internal logic error"
+  },
+  {
+    "codespace": "ibc",
+    "code": 16,
+    "description": "not found"
+  },
+  {
+    "codespace": "ibchooks",
+    "code": 2,
+    "description": "error in wasmhook message validation"
+  },
+  {
+    "codespace": "icacontroller",
+    "code": 2,
+    "description": "controller submodule is disabled"
+  },
+  {
+    "codespace": "icahost",
+    "code": 2,
+    "description": "host submodule is disabled"
+  },
+  {
+    "codespace": "injective",
+    "code": 3,
+    "description": "invalid chain ID"
+  },
+  {
+    "codespace": "injective",
+    "code": 4,
+    "description": "invalid ethereum signature"
+  },
+  {
+    "codespace": "insurance",
+    "code": 1,
+    "description": "insurance fund already exists"
+  },
+  {
+    "codespace": "insurance",
+    "code": 2,
+    "description": "insurance fund not found"
+  },
+  {
+    "codespace": "insurance",
+    "code": 3,
+    "description": "redemption already exists"
+  },
+  {
+    "codespace": "insurance",
+    "code": 4,
+    "description": "invalid deposit amount"
+  },
+  {
+    "codespace": "insurance",
+    "code": 5,
+    "description": "invalid deposit denom"
+  },
+  {
+    "codespace": "insurance",
+    "code": 6,
+    "description": "insurance payout exceeds deposits"
+  },
+  {
+    "codespace": "insurance",
+    "code": 7,
+    "description": "invalid ticker"
+  },
+  {
+    "codespace": "insurance",
+    "code": 8,
+    "description": "invalid quote denom"
+  },
+  {
+    "codespace": "insurance",
+    "code": 9,
+    "description": "invalid oracle"
+  },
+  {
+    "codespace": "insurance",
+    "code": 10,
+    "description": "invalid expiration time"
+  },
+  {
+    "codespace": "insurance",
+    "code": 11,
+    "description": "invalid marketID"
+  },
+  {
+    "codespace": "insurance",
+    "code": 12,
+    "description": "invalid share denom"
+  },
+  {
+    "codespace": "interchainaccounts",
+    "code": 2,
+    "description": "unknown data type"
+  },
+  {
+    "codespace": "interchainaccounts",
+    "code": 3,
+    "description": "account already exist"
+  },
+  {
+    "codespace": "interchainaccounts",
+    "code": 4,
+    "description": "port is already bound"
+  },
+  {
+    "codespace": "interchainaccounts",
+    "code": 5,
+    "description": "invalid message sent to channel end"
+  },
+  {
+    "codespace": "interchainaccounts",
+    "code": 6,
+    "description": "invalid outgoing data"
+  },
+  {
+    "codespace": "interchainaccounts",
+    "code": 7,
+    "description": "invalid route"
+  },
+  {
+    "codespace": "interchainaccounts",
+    "code": 8,
+    "description": "interchain account not found"
+  },
+  {
+    "codespace": "interchainaccounts",
+    "code": 9,
+    "description": "interchain account is already set"
+  },
+  {
+    "codespace": "interchainaccounts",
+    "code": 10,
+    "description": "active channel already set for this owner"
+  },
+  {
+    "codespace": "interchainaccounts",
+    "code": 11,
+    "description": "no active channel for this owner"
+  },
+  {
+    "codespace": "interchainaccounts",
+    "code": 12,
+    "description": "invalid interchain accounts version"
+  },
+  {
+    "codespace": "interchainaccounts",
+    "code": 13,
+    "description": "invalid account address"
+  },
+  {
+    "codespace": "interchainaccounts",
+    "code": 14,
+    "description": "interchain account does not support this action"
+  },
+  {
+    "codespace": "interchainaccounts",
+    "code": 15,
+    "description": "invalid controller port"
+  },
+  {
+    "codespace": "interchainaccounts",
+    "code": 16,
+    "description": "invalid host port"
+  },
+  {
+    "codespace": "interchainaccounts",
+    "code": 17,
+    "description": "timeout timestamp must be in the future"
+  },
+  {
+    "codespace": "interchainaccounts",
+    "code": 18,
+    "description": "codec is not supported"
+  },
+  {
+    "codespace": "interchainaccounts",
+    "code": 19,
+    "description": "invalid account reopening"
+  },
+  {
+    "codespace": "legacy_orm",
+    "code": 11,
+    "description": "iterator done"
+  },
+  {
+    "codespace": "legacy_orm",
+    "code": 12,
+    "description": "invalid iterator"
+  },
+  {
+    "codespace": "legacy_orm",
+    "code": 13,
+    "description": "unique constraint violation"
+  },
+  {
+    "codespace": "legacy_orm",
+    "code": 14,
+    "description": "invalid argument"
+  },
+  {
+    "codespace": "legacy_orm",
+    "code": 15,
+    "description": "key exceeds max length"
+  },
+  {
+    "codespace": "legacy_orm",
+    "code": 47,
+    "description": "cannot use empty key"
+  },
+  {
+    "codespace": "math",
+    "code": 10,
+    "description": "invalid decimal string"
+  },
+  {
+    "codespace": "oracle",
+    "code": 1,
+    "description": "relayer address is empty"
+  },
+  {
+    "codespace": "oracle",
+    "code": 2,
+    "description": "bad rates count"
+  },
+  {
+    "codespace": "oracle",
+    "code": 3,
+    "description": "bad resolve times"
+  },
+  {
+    "codespace": "oracle",
+    "code": 4,
+    "description": "bad request ID"
+  },
+  {
+    "codespace": "oracle",
+    "code": 5,
+    "description": "relayer not authorized"
+  },
+  {
+    "codespace": "oracle",
+    "code": 6,
+    "description": "bad price feed base count"
+  },
+  {
+    "codespace": "oracle",
+    "code": 7,
+    "description": "bad price feed quote count"
+  },
+  {
+    "codespace": "oracle",
+    "code": 8,
+    "description": "unsupported oracle type"
+  },
+  {
+    "codespace": "oracle",
+    "code": 9,
+    "description": "bad messages count"
+  },
+  {
+    "codespace": "oracle",
+    "code": 10,
+    "description": "bad Coinbase message"
+  },
+  {
+    "codespace": "oracle",
+    "code": 11,
+    "description": "bad Ethereum signature"
+  },
+  {
+    "codespace": "oracle",
+    "code": 12,
+    "description": "bad Coinbase message timestamp"
+  },
+  {
+    "codespace": "oracle",
+    "code": 13,
+    "description": "Coinbase price not found"
+  },
+  {
+    "codespace": "oracle",
+    "code": 14,
+    "description": "Prices must be positive"
+  },
+  {
+    "codespace": "oracle",
+    "code": 15,
+    "description": "Prices must be less than 10 million."
+  },
+  {
+    "codespace": "oracle",
+    "code": 16,
+    "description": "Invalid Band IBC Request"
+  },
+  {
+    "codespace": "oracle",
+    "code": 17,
+    "description": "sample error"
+  },
+  {
+    "codespace": "oracle",
+    "code": 18,
+    "description": "invalid packet timeout"
+  },
+  {
+    "codespace": "oracle",
+    "code": 19,
+    "description": "invalid symbols count"
+  },
+  {
+    "codespace": "oracle",
+    "code": 20,
+    "description": "could not claim port capability"
+  },
+  {
+    "codespace": "oracle",
+    "code": 21,
+    "description": "invalid IBC Port ID"
+  },
+  {
+    "codespace": "oracle",
+    "code": 22,
+    "description": "invalid IBC Channel ID"
+  },
+  {
+    "codespace": "oracle",
+    "code": 23,
+    "description": "invalid Band IBC request interval"
+  },
+  {
+    "codespace": "oracle",
+    "code": 24,
+    "description": "Invalid Band IBC Update Request Proposal"
+  },
+  {
+    "codespace": "oracle",
+    "code": 25,
+    "description": "Band IBC Oracle Request not found"
+  },
+  {
+    "codespace": "oracle",
+    "code": 26,
+    "description": "Base Info is empty"
+  },
+  {
+    "codespace": "oracle",
+    "code": 27,
+    "description": "provider is empty"
+  },
+  {
+    "codespace": "oracle",
+    "code": 28,
+    "description": "invalid provider name"
+  },
+  {
+    "codespace": "oracle",
+    "code": 29,
+    "description": "invalid symbol"
+  },
+  {
+    "codespace": "oracle",
+    "code": 30,
+    "description": "relayer already exists"
+  },
+  {
+    "codespace": "oracle",
+    "code": 31,
+    "description": "provider price not found"
+  },
+  {
+    "codespace": "oracle",
+    "code": 32,
+    "description": "invalid oracle request"
+  },
+  {
+    "codespace": "oracle",
+    "code": 33,
+    "description": "no price for oracle was found"
+  },
+  {
+    "codespace": "oracle",
+    "code": 34,
+    "description": "no address for Pyth contract found"
+  },
+  {
+    "codespace": "oracle",
+    "code": 35,
+    "description": "unauthorized Pyth price relay"
+  },
+  {
+    "codespace": "oracle",
+    "code": 36,
+    "description": "unauthorized Pyth price relay"
+  },
+  {
+    "codespace": "oracle",
+    "code": 37,
+    "description": "unauthorized Pyth price relay"
+  },
+  {
+    "codespace": "oracle",
+    "code": 38,
+    "description": "unauthorized Pyth price relay"
+  },
+  {
+    "codespace": "oracle",
+    "code": 39,
+    "description": "empty price attestations"
+  },
+  {
+    "codespace": "oracle",
+    "code": 40,
+    "description": "bad Stork message timestamp"
+  },
+  {
+    "codespace": "oracle",
+    "code": 41,
+    "description": "sender stork is empty"
+  },
+  {
+    "codespace": "oracle",
+    "code": 42,
+    "description": "invalid stork signature"
+  },
+  {
+    "codespace": "oracle",
+    "code": 43,
+    "description": "stork asset id not unique"
+  },
+  {
+    "codespace": "oracle",
+    "code": 44,
+    "description": "chainlink report verification failed"
+  },
+  {
+    "codespace": "oracle",
+    "code": 45,
+    "description": "Band oracle is deprecated and no longer supported"
+  },
+  {
+    "codespace": "oracle",
+    "code": 46,
+    "description": "stork asset id is empty"
+  },
+  {
+    "codespace": "oracle",
+    "code": 47,
+    "description": "pyth pro update verification failed"
+  },
+  {
+    "codespace": "oracle",
+    "code": 48,
+    "description": "seda fast oracle disabled: public key not configured"
+  },
+  {
+    "codespace": "oracle",
+    "code": 49,
+    "description": "seda fast payload malformed"
+  },
+  {
+    "codespace": "oracle",
+    "code": 50,
+    "description": "seda fast signature verification failed"
+  },
+  {
+    "codespace": "oracle",
+    "code": 51,
+    "description": "seda fast exec program id not in allowlist"
+  },
+  {
+    "codespace": "oracle",
+    "code": 52,
+    "description": "seda fast execution failed (non-zero exit code or no consensus)"
+  },
+  {
+    "codespace": "oracle",
+    "code": 53,
+    "description": "seda fast result parser failed"
+  },
+  {
+    "codespace": "oracle",
+    "code": 54,
+    "description": "no Pyth Pro price update applied"
+  },
+  {
+    "codespace": "params",
+    "code": 2,
+    "description": "unknown subspace"
+  },
+  {
+    "codespace": "params",
+    "code": 3,
+    "description": "failed to set parameter"
+  },
+  {
+    "codespace": "params",
+    "code": 4,
+    "description": "submitted parameter changes are empty"
+  },
+  {
+    "codespace": "params",
+    "code": 5,
+    "description": "parameter subspace is empty"
+  },
+  {
+    "codespace": "params",
+    "code": 6,
+    "description": "parameter key is empty"
+  },
+  {
+    "codespace": "params",
+    "code": 7,
+    "description": "parameter value is empty"
+  },
+  {
+    "codespace": "peggy",
+    "code": 1,
+    "description": "internal"
+  },
+  {
+    "codespace": "peggy",
+    "code": 2,
+    "description": "duplicate"
+  },
+  {
+    "codespace": "peggy",
+    "code": 3,
+    "description": "invalid"
+  },
+  {
+    "codespace": "peggy",
+    "code": 4,
+    "description": "timeout"
+  },
+  {
+    "codespace": "peggy",
+    "code": 5,
+    "description": "unknown"
+  },
+  {
+    "codespace": "peggy",
+    "code": 6,
+    "description": "empty"
+  },
+  {
+    "codespace": "peggy",
+    "code": 7,
+    "description": "outdated"
+  },
+  {
+    "codespace": "peggy",
+    "code": 8,
+    "description": "unsupported"
+  },
+  {
+    "codespace": "peggy",
+    "code": 9,
+    "description": "non contiguous event nonce"
+  },
+  {
+    "codespace": "peggy",
+    "code": 10,
+    "description": "no unbatched txs found"
+  },
+  {
+    "codespace": "peggy",
+    "code": 11,
+    "description": "can not set orchestrator addresses more than once"
+  },
+  {
+    "codespace": "peggy",
+    "code": 12,
+    "description": "supply cannot exceed max ERC20 value"
+  },
+  {
+    "codespace": "peggy",
+    "code": 13,
+    "description": "invalid ethereum sender on claim"
+  },
+  {
+    "codespace": "peggy",
+    "code": 14,
+    "description": "invalid ethereum destination"
+  },
+  {
+    "codespace": "peggy",
+    "code": 15,
+    "description": "missing previous claim for validator"
+  },
+  {
+    "codespace": "peggy",
+    "code": 16,
+    "description": "eth address already in use"
+  },
+  {
+    "codespace": "peggy",
+    "code": 17,
+    "description": "validator is unbonded"
+  },
+  {
+    "codespace": "permissions",
+    "code": 2,
+    "description": "attempting to create a namespace for denom that already exists"
+  },
+  {
+    "codespace": "permissions",
+    "code": 3,
+    "description": "unauthorized account"
+  },
+  {
+    "codespace": "permissions",
+    "code": 4,
+    "description": "invalid genesis"
+  },
+  {
+    "codespace": "permissions",
+    "code": 5,
+    "description": "invalid namespace"
+  },
+  {
+    "codespace": "permissions",
+    "code": 6,
+    "description": "invalid permissions"
+  },
+  {
+    "codespace": "permissions",
+    "code": 7,
+    "description": "unknown role"
+  },
+  {
+    "codespace": "permissions",
+    "code": 8,
+    "description": "unknown contract address"
+  },
+  {
+    "codespace": "permissions",
+    "code": 9,
+    "description": "restricted action"
+  },
+  {
+    "codespace": "permissions",
+    "code": 10,
+    "description": "invalid role"
+  },
+  {
+    "codespace": "permissions",
+    "code": 11,
+    "description": "namespace for denom does not exist"
+  },
+  {
+    "codespace": "permissions",
+    "code": 12,
+    "description": "contract hook query error"
+  },
+  {
+    "codespace": "permissions",
+    "code": 13,
+    "description": "voucher was not found"
+  },
+  {
+    "codespace": "permissions",
+    "code": 14,
+    "description": "invalid wasm hook"
+  },
+  {
+    "codespace": "permissions",
+    "code": 15,
+    "description": "unknown policy"
+  },
+  {
+    "codespace": "permissions",
+    "code": 16,
+    "description": "unauthorized policy change"
+  },
+  {
+    "codespace": "permissions",
+    "code": 17,
+    "description": "invalid evm hook"
+  },
+  {
+    "codespace": "permissions",
+    "code": 18,
+    "description": "invalid erc20 denom"
+  },
+  {
+    "codespace": "permissions",
+    "code": 19,
+    "description": "contract post hook execution error"
+  },
+  {
+    "codespace": "permissions",
+    "code": 20,
+    "description": "invalid evm post send hook"
+  },
+  {
+    "codespace": "port",
+    "code": 2,
+    "description": "port is already binded"
+  },
+  {
+    "codespace": "port",
+    "code": 3,
+    "description": "port not found"
+  },
+  {
+    "codespace": "port",
+    "code": 4,
+    "description": "invalid port"
+  },
+  {
+    "codespace": "port",
+    "code": 5,
+    "description": "route not found"
+  },
+  {
+    "codespace": "sdk",
+    "code": 2,
+    "description": "tx parse error"
+  },
+  {
+    "codespace": "sdk",
+    "code": 3,
+    "description": "invalid sequence"
+  },
+  {
+    "codespace": "sdk",
+    "code": 4,
+    "description": "unauthorized"
+  },
+  {
+    "codespace": "sdk",
+    "code": 5,
+    "description": "insufficient funds"
+  },
+  {
+    "codespace": "sdk",
+    "code": 6,
+    "description": "unknown request"
+  },
+  {
+    "codespace": "sdk",
+    "code": 7,
+    "description": "invalid address"
+  },
+  {
+    "codespace": "sdk",
+    "code": 8,
+    "description": "invalid pubkey"
+  },
+  {
+    "codespace": "sdk",
+    "code": 9,
+    "description": "unknown address"
+  },
+  {
+    "codespace": "sdk",
+    "code": 10,
+    "description": "invalid coins"
+  },
+  {
+    "codespace": "sdk",
+    "code": 11,
+    "description": "out of gas"
+  },
+  {
+    "codespace": "sdk",
+    "code": 12,
+    "description": "memo too large"
+  },
+  {
+    "codespace": "sdk",
+    "code": 13,
+    "description": "insufficient fee"
+  },
+  {
+    "codespace": "sdk",
+    "code": 14,
+    "description": "maximum number of signatures exceeded"
+  },
+  {
+    "codespace": "sdk",
+    "code": 15,
+    "description": "no signatures supplied"
+  },
+  {
+    "codespace": "sdk",
+    "code": 16,
+    "description": "failed to marshal JSON bytes"
+  },
+  {
+    "codespace": "sdk",
+    "code": 17,
+    "description": "failed to unmarshal JSON bytes"
+  },
+  {
+    "codespace": "sdk",
+    "code": 18,
+    "description": "invalid request"
+  },
+  {
+    "codespace": "sdk",
+    "code": 19,
+    "description": "tx already in mempool"
+  },
+  {
+    "codespace": "sdk",
+    "code": 20,
+    "description": "mempool is full"
+  },
+  {
+    "codespace": "sdk",
+    "code": 21,
+    "description": "tx too large"
+  },
+  {
+    "codespace": "sdk",
+    "code": 22,
+    "description": "key not found"
+  },
+  {
+    "codespace": "sdk",
+    "code": 23,
+    "description": "invalid account password"
+  },
+  {
+    "codespace": "sdk",
+    "code": 24,
+    "description": "tx intended signer does not match the given signer"
+  },
+  {
+    "codespace": "sdk",
+    "code": 25,
+    "description": "invalid gas adjustment"
+  },
+  {
+    "codespace": "sdk",
+    "code": 26,
+    "description": "invalid height"
+  },
+  {
+    "codespace": "sdk",
+    "code": 27,
+    "description": "invalid version"
+  },
+  {
+    "codespace": "sdk",
+    "code": 28,
+    "description": "invalid chain-id"
+  },
+  {
+    "codespace": "sdk",
+    "code": 29,
+    "description": "invalid type"
+  },
+  {
+    "codespace": "sdk",
+    "code": 30,
+    "description": "tx timeout height"
+  },
+  {
+    "codespace": "sdk",
+    "code": 31,
+    "description": "unknown extension options"
+  },
+  {
+    "codespace": "sdk",
+    "code": 32,
+    "description": "incorrect account sequence"
+  },
+  {
+    "codespace": "sdk",
+    "code": 33,
+    "description": "failed packing protobuf message to Any"
+  },
+  {
+    "codespace": "sdk",
+    "code": 34,
+    "description": "failed unpacking protobuf message from Any"
+  },
+  {
+    "codespace": "sdk",
+    "code": 35,
+    "description": "internal logic error"
+  },
+  {
+    "codespace": "sdk",
+    "code": 36,
+    "description": "conflict"
+  },
+  {
+    "codespace": "sdk",
+    "code": 37,
+    "description": "feature not supported"
+  },
+  {
+    "codespace": "sdk",
+    "code": 38,
+    "description": "not found"
+  },
+  {
+    "codespace": "sdk",
+    "code": 39,
+    "description": "Internal IO error"
+  },
+  {
+    "codespace": "sdk",
+    "code": 40,
+    "description": "error in app.toml"
+  },
+  {
+    "codespace": "sdk",
+    "code": 41,
+    "description": "invalid gas limit"
+  },
+  {
+    "codespace": "slashing",
+    "code": 2,
+    "description": "address is not associated with any known validator"
+  },
+  {
+    "codespace": "slashing",
+    "code": 3,
+    "description": "validator does not exist for that address"
+  },
+  {
+    "codespace": "slashing",
+    "code": 4,
+    "description": "validator still jailed; cannot be unjailed"
+  },
+  {
+    "codespace": "slashing",
+    "code": 5,
+    "description": "validator not jailed; cannot be unjailed"
+  },
+  {
+    "codespace": "slashing",
+    "code": 6,
+    "description": "validator has no self-delegation; cannot be unjailed"
+  },
+  {
+    "codespace": "slashing",
+    "code": 7,
+    "description": "validator's self delegation less than minimum; cannot be unjailed"
+  },
+  {
+    "codespace": "slashing",
+    "code": 8,
+    "description": "no validator signing info found"
+  },
+  {
+    "codespace": "slashing",
+    "code": 9,
+    "description": "validator already tombstoned"
+  },
+  {
+    "codespace": "staking",
+    "code": 2,
+    "description": "empty validator address"
+  },
+  {
+    "codespace": "staking",
+    "code": 3,
+    "description": "validator does not exist"
+  },
+  {
+    "codespace": "staking",
+    "code": 4,
+    "description": "validator already exist for this operator address; must use new validator operator address"
+  },
+  {
+    "codespace": "staking",
+    "code": 5,
+    "description": "validator already exist for this pubkey; must use new validator pubkey"
+  },
+  {
+    "codespace": "staking",
+    "code": 6,
+    "description": "validator pubkey type is not supported"
+  },
+  {
+    "codespace": "staking",
+    "code": 7,
+    "description": "validator for this address is currently jailed"
+  },
+  {
+    "codespace": "staking",
+    "code": 8,
+    "description": "failed to remove validator"
+  },
+  {
+    "codespace": "staking",
+    "code": 9,
+    "description": "commission must be positive"
+  },
+  {
+    "codespace": "staking",
+    "code": 10,
+    "description": "commission cannot be more than 100%"
+  },
+  {
+    "codespace": "staking",
+    "code": 11,
+    "description": "commission cannot be more than the max rate"
+  },
+  {
+    "codespace": "staking",
+    "code": 12,
+    "description": "commission cannot be changed more than once in 24h"
+  },
+  {
+    "codespace": "staking",
+    "code": 13,
+    "description": "commission change rate must be positive"
+  },
+  {
+    "codespace": "staking",
+    "code": 14,
+    "description": "commission change rate cannot be more than the max rate"
+  },
+  {
+    "codespace": "staking",
+    "code": 15,
+    "description": "commission cannot be changed more than max change rate"
+  },
+  {
+    "codespace": "staking",
+    "code": 16,
+    "description": "validator's self delegation must be greater than their minimum self delegation"
+  },
+  {
+    "codespace": "staking",
+    "code": 17,
+    "description": "minimum self delegation cannot be decrease"
+  },
+  {
+    "codespace": "staking",
+    "code": 18,
+    "description": "empty delegator address"
+  },
+  {
+    "codespace": "staking",
+    "code": 19,
+    "description": "no delegation for (address, validator) tuple"
+  },
+  {
+    "codespace": "staking",
+    "code": 20,
+    "description": "delegator does not exist with address"
+  },
+  {
+    "codespace": "staking",
+    "code": 21,
+    "description": "delegator does not contain delegation"
+  },
+  {
+    "codespace": "staking",
+    "code": 22,
+    "description": "insufficient delegation shares"
+  },
+  {
+    "codespace": "staking",
+    "code": 23,
+    "description": "cannot delegate to an empty validator"
+  },
+  {
+    "codespace": "staking",
+    "code": 24,
+    "description": "not enough delegation shares"
+  },
+  {
+    "codespace": "staking",
+    "code": 25,
+    "description": "entry not mature"
+  },
+  {
+    "codespace": "staking",
+    "code": 26,
+    "description": "no unbonding delegation found"
+  },
+  {
+    "codespace": "staking",
+    "code": 27,
+    "description": "too many unbonding delegation entries for (delegator, validator) tuple"
+  },
+  {
+    "codespace": "staking",
+    "code": 28,
+    "description": "no redelegation found"
+  },
+  {
+    "codespace": "staking",
+    "code": 29,
+    "description": "cannot redelegate to the same validator"
+  },
+  {
+    "codespace": "staking",
+    "code": 30,
+    "description": "too few tokens to redelegate (truncates to zero tokens)"
+  },
+  {
+    "codespace": "staking",
+    "code": 31,
+    "description": "redelegation destination validator not found"
+  },
+  {
+    "codespace": "staking",
+    "code": 32,
+    "description": "redelegation to this validator already in progress; first redelegation to this validator must complete before next redelegation"
+  },
+  {
+    "codespace": "staking",
+    "code": 33,
+    "description": "too many redelegation entries for (delegator, src-validator, dst-validator) tuple"
+  },
+  {
+    "codespace": "staking",
+    "code": 34,
+    "description": "cannot delegate to validators with invalid (zero) ex-rate"
+  },
+  {
+    "codespace": "staking",
+    "code": 35,
+    "description": "both shares amount and shares percent provided"
+  },
+  {
+    "codespace": "staking",
+    "code": 36,
+    "description": "neither shares amount nor shares percent provided"
+  },
+  {
+    "codespace": "staking",
+    "code": 37,
+    "description": "invalid historical info"
+  },
+  {
+    "codespace": "staking",
+    "code": 38,
+    "description": "no historical info found"
+  },
+  {
+    "codespace": "staking",
+    "code": 39,
+    "description": "empty validator public key"
+  },
+  {
+    "codespace": "staking",
+    "code": 40,
+    "description": "commission cannot be less than min rate"
+  },
+  {
+    "codespace": "staking",
+    "code": 41,
+    "description": "unbonding operation not found"
+  },
+  {
+    "codespace": "staking",
+    "code": 42,
+    "description": "cannot un-hold unbonding operation that is not on hold"
+  },
+  {
+    "codespace": "staking",
+    "code": 43,
+    "description": "expected authority account as only signer for proposal message"
+  },
+  {
+    "codespace": "staking",
+    "code": 44,
+    "description": "redelegation source validator not found"
+  },
+  {
+    "codespace": "staking",
+    "code": 45,
+    "description": "unbonding type not found"
+  },
+  {
+    "codespace": "staking",
+    "code": 70,
+    "description": "commission rate too small"
+  },
+  {
+    "codespace": "store",
+    "code": 2,
+    "description": "invalid proof"
+  },
+  {
+    "codespace": "store",
+    "code": 3,
+    "description": "tx parse error"
+  },
+  {
+    "codespace": "store",
+    "code": 4,
+    "description": "unknown request"
+  },
+  {
+    "codespace": "store",
+    "code": 5,
+    "description": "internal logic error"
+  },
+  {
+    "codespace": "store",
+    "code": 6,
+    "description": "conflict"
+  },
+  {
+    "codespace": "store",
+    "code": 7,
+    "description": "invalid request"
+  },
+  {
+    "codespace": "table_testdata",
+    "code": 2,
+    "description": "test"
+  },
+  {
+    "codespace": "tokenfactory",
+    "code": 2,
+    "description": "attempting to create a denom that already exists (has bank metadata)"
+  },
+  {
+    "codespace": "tokenfactory",
+    "code": 3,
+    "description": "unauthorized account"
+  },
+  {
+    "codespace": "tokenfactory",
+    "code": 4,
+    "description": "invalid denom"
+  },
+  {
+    "codespace": "tokenfactory",
+    "code": 5,
+    "description": "invalid creator"
+  },
+  {
+    "codespace": "tokenfactory",
+    "code": 6,
+    "description": "invalid authority metadata"
+  },
+  {
+    "codespace": "tokenfactory",
+    "code": 7,
+    "description": "invalid genesis"
+  },
+  {
+    "codespace": "tokenfactory",
+    "code": 8,
+    "description": "subdenom too long, max length is 44 bytes"
+  },
+  {
+    "codespace": "tokenfactory",
+    "code": 9,
+    "description": "subdenom too short, min length is 1 bytes"
+  },
+  {
+    "codespace": "tokenfactory",
+    "code": 10,
+    "description": "nested subdenom too short, each one should have at least 1 bytes"
+  },
+  {
+    "codespace": "tokenfactory",
+    "code": 11,
+    "description": "creator too long, max length is 75 bytes"
+  },
+  {
+    "codespace": "tokenfactory",
+    "code": 12,
+    "description": "denom does not exist"
+  },
+  {
+    "codespace": "tokenfactory",
+    "code": 13,
+    "description": "amount has to be positive"
+  },
+  {
+    "codespace": "transfer",
+    "code": 2,
+    "description": "invalid packet timeout"
+  },
+  {
+    "codespace": "transfer",
+    "code": 3,
+    "description": "invalid denomination for cross-chain transfer"
+  },
+  {
+    "codespace": "transfer",
+    "code": 4,
+    "description": "invalid ICS20 version"
+  },
+  {
+    "codespace": "transfer",
+    "code": 5,
+    "description": "invalid token amount"
+  },
+  {
+    "codespace": "transfer",
+    "code": 6,
+    "description": "denomination trace not found"
+  },
+  {
+    "codespace": "transfer",
+    "code": 7,
+    "description": "fungible token transfers from this chain are disabled"
+  },
+  {
+    "codespace": "transfer",
+    "code": 8,
+    "description": "fungible token transfers to this chain are disabled"
+  },
+  {
+    "codespace": "transfer",
+    "code": 9,
+    "description": "max transfer channels"
+  },
+  {
+    "codespace": "transfer",
+    "code": 10,
+    "description": "invalid transfer authorization"
+  },
+  {
+    "codespace": "transfer",
+    "code": 11,
+    "description": "invalid memo"
+  },
+  {
+    "codespace": "tx",
+    "code": 1,
+    "description": "tx parse error"
+  },
+  {
+    "codespace": "tx",
+    "code": 2,
+    "description": "unknown protobuf field"
+  },
+  {
+    "codespace": "txfees",
+    "code": 1,
+    "description": "invalid fee token"
+  },
+  {
+    "codespace": "txfees",
+    "code": 2,
+    "description": "more than one coin in fee"
+  },
+  {
+    "codespace": "txfees",
+    "code": 3,
+    "description": "unsupported query param"
+  },
+  {
+    "codespace": "undefined",
+    "code": 1,
+    "description": "internal"
+  },
+  {
+    "codespace": "undefined",
+    "code": 2,
+    "description": "stop iterating"
+  },
+  {
+    "codespace": "undefined",
+    "code": 111222,
+    "description": "panic"
+  },
+  {
+    "codespace": "upgrade",
+    "code": 2,
+    "description": "module version not found"
+  },
+  {
+    "codespace": "upgrade",
+    "code": 3,
+    "description": "upgrade plan not found"
+  },
+  {
+    "codespace": "upgrade",
+    "code": 4,
+    "description": "upgraded client not found"
+  },
+  {
+    "codespace": "upgrade",
+    "code": 5,
+    "description": "upgraded consensus state not found"
+  },
+  {
+    "codespace": "upgrade",
+    "code": 6,
+    "description": "expected authority account as only signer for proposal message"
+  },
+  {
+    "codespace": "vouchers",
+    "code": 1,
+    "description": "voucher not found"
+  },
+  {
+    "codespace": "wasm",
+    "code": 2,
+    "description": "create wasm contract failed"
+  },
+  {
+    "codespace": "wasm",
+    "code": 3,
+    "description": "contract account already exists"
+  },
+  {
+    "codespace": "wasm",
+    "code": 4,
+    "description": "instantiate wasm contract failed"
+  },
+  {
+    "codespace": "wasm",
+    "code": 5,
+    "description": "execute wasm contract failed"
+  },
+  {
+    "codespace": "wasm",
+    "code": 6,
+    "description": "insufficient gas"
+  },
+  {
+    "codespace": "wasm",
+    "code": 7,
+    "description": "invalid genesis"
+  },
+  {
+    "codespace": "wasm",
+    "code": 8,
+    "description": "not found"
+  },
+  {
+    "codespace": "wasm",
+    "code": 9,
+    "description": "query wasm contract failed"
+  },
+  {
+    "codespace": "wasm",
+    "code": 10,
+    "description": "invalid CosmosMsg from the contract"
+  },
+  {
+    "codespace": "wasm",
+    "code": 11,
+    "description": "migrate wasm contract failed"
+  },
+  {
+    "codespace": "wasm",
+    "code": 12,
+    "description": "empty"
+  },
+  {
+    "codespace": "wasm",
+    "code": 13,
+    "description": "exceeds limit"
+  },
+  {
+    "codespace": "wasm",
+    "code": 14,
+    "description": "invalid"
+  },
+  {
+    "codespace": "wasm",
+    "code": 15,
+    "description": "duplicate"
+  },
+  {
+    "codespace": "wasm",
+    "code": 16,
+    "description": "max transfer channels"
+  },
+  {
+    "codespace": "wasm",
+    "code": 17,
+    "description": "unsupported for this contract"
+  },
+  {
+    "codespace": "wasm",
+    "code": 18,
+    "description": "pinning contract failed"
+  },
+  {
+    "codespace": "wasm",
+    "code": 19,
+    "description": "unpinning contract failed"
+  },
+  {
+    "codespace": "wasm",
+    "code": 20,
+    "description": "unknown message from the contract"
+  },
+  {
+    "codespace": "wasm",
+    "code": 21,
+    "description": "invalid event"
+  },
+  {
+    "codespace": "wasm",
+    "code": 22,
+    "description": "no such contract"
+  },
+  {
+    "codespace": "wasm",
+    "code": 27,
+    "description": "max query stack size exceeded"
+  },
+  {
+    "codespace": "wasm",
+    "code": 28,
+    "description": "no such code"
+  },
+  {
+    "codespace": "wasm",
+    "code": 29,
+    "description": "wasmvm error"
+  },
+  {
+    "codespace": "wasm",
+    "code": 30,
+    "description": "max call depth exceeded"
+  },
+  {
+    "codespace": "wasm",
+    "code": 31,
+    "description": "syncing pinned codes failed"
+  },
+  {
+    "codespace": "wasm-hooks",
+    "code": 3,
+    "description": "cannot marshal the ICS20 packet"
+  },
+  {
+    "codespace": "wasm-hooks",
+    "code": 4,
+    "description": "invalid packet data"
+  },
+  {
+    "codespace": "wasm-hooks",
+    "code": 5,
+    "description": "cannot create response"
+  },
+  {
+    "codespace": "wasm-hooks",
+    "code": 6,
+    "description": "wasm error"
+  },
+  {
+    "codespace": "wasm-hooks",
+    "code": 7,
+    "description": "bad sender"
+  },
+  {
+    "codespace": "xwasm",
+    "code": 1,
+    "description": "invalid gas limit"
+  },
+  {
+    "codespace": "xwasm",
+    "code": 2,
+    "description": "invalid gas price"
+  },
+  {
+    "codespace": "xwasm",
+    "code": 3,
+    "description": "invalid contract address"
+  },
+  {
+    "codespace": "xwasm",
+    "code": 4,
+    "description": "contract already registered"
+  },
+  {
+    "codespace": "xwasm",
+    "code": 5,
+    "description": "duplicate contract"
+  },
+  {
+    "codespace": "xwasm",
+    "code": 6,
+    "description": "no contract addresses found"
+  },
+  {
+    "codespace": "xwasm",
+    "code": 7,
+    "description": "invalid code id"
+  },
+  {
+    "codespace": "xwasm",
+    "code": 8,
+    "description": "not possible to deduct gas fees"
+  },
+  {
+    "codespace": "xwasm",
+    "code": 9,
+    "description": "missing granter address"
+  },
+  {
+    "codespace": "xwasm",
+    "code": 10,
+    "description": "granter address does not exist"
+  },
+  {
+    "codespace": "xwasm",
+    "code": 11,
+    "description": "invalid funding mode"
+  }
+]

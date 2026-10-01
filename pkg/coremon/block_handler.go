@@ -35,8 +35,10 @@ func NewBlockHandlerWithMetrics(
 	logger log.Logger,
 	chainID string,
 	influxWriteAPI influxdb2api.WriteAPI,
+	rfqCfg RFQConfig,
 ) NewBlockHandlerFn {
 	logger = logger.WithField("fn", "block_handler")
+	rfq := newRFQTracker(rfqCfg)
 	metricTags := metrics.NewTags(map[string]string{
 		"svc":      "coremon",
 		"chain_id": chainID,
@@ -72,6 +74,7 @@ func NewBlockHandlerWithMetrics(
 		blockEvents := len(nextBlock.BlockResults.FinalizeBlockEvents)
 
 		latency := time.Since(nextBlock.Block.Time)
+		rfq.ObserveBlocks(prevBlock, nextBlock)
 		logger.WithFields(log.Fields{
 			"height":  blockNumber,
 			"latency": latency,
@@ -492,6 +495,15 @@ func NewBlockHandlerWithMetrics(
 				pointsToWrite = append(pointsToWrite, p)
 			}
 
+			pointsToWrite = append(pointsToWrite, rfq.TxPoints(
+				nextBlock,
+				txIndex,
+				txResult,
+				parsedTx,
+				filteredMsgs,
+				allTags,
+			)...)
+
 			p := influxdb2.NewPointWithMeasurement("coremon_txs")
 			p = p.SetTime(nextBlock.Block.Time)
 			p = p.AddField("height", nextBlock.Block.Height)
@@ -645,6 +657,8 @@ func NewBlockHandlerWithMetrics(
 
 			pointsToWrite = append(pointsToWrite, p)
 		}
+
+		pointsToWrite = append(pointsToWrite, rfq.Flush()...)
 
 		if authzUnpackings > 0 {
 			metrics.CustomReport(func(s metrics.Statter, tagSpec []string) {

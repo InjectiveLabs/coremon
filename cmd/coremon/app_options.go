@@ -2,6 +2,8 @@ package main
 
 import (
 	cli "github.com/jawher/mow.cli"
+
+	"github.com/InjectiveLabs/coremon/pkg/coremon"
 )
 
 // initGlobalOptions defines some global CLI options, that are useful for most parts of the app.
@@ -156,5 +158,42 @@ func initInfluxOptions(
 		Desc:   "Specify InfluxDB database password.",
 		EnvVar: "COREMON_DB_INFLUX_PASSWORD",
 		Value:  "",
+	})
+}
+
+// initRFQOptions sets options for RFQ transactions tracking.
+func initRFQOptions(
+	c *cli.Cmd,
+	rfqContracts **string,
+	rfqProxyContracts **string,
+	rfqOnly **bool,
+	stopHeight **int,
+) {
+	*rfqOnly = c.Bool(cli.BoolOpt{
+		Name:   "rfq-only",
+		Desc:   "Write only RFQ and WASM error measurements (coremon_rfq_txs, coremon_rfq_quotes, coremon_wasm_errors), e.g. to backfill them without touching other stats.",
+		EnvVar: "COREMON_RFQ_ONLY",
+		Value:  false,
+	})
+
+	*stopHeight = c.Int(cli.IntOpt{
+		Name:   "stop-height",
+		Desc:   "Lowest block height to process in --reverse mode, the process idles after reaching it (0 = genesis).",
+		EnvVar: "COREMON_STOP_HEIGHT",
+		Value:  0,
+	})
+
+	*rfqContracts = c.String(cli.StringOpt{
+		Name:   "rfq-contracts",
+		Desc:   "Comma-separated list of RFQ settlement contract addresses to track.",
+		EnvVar: "COREMON_RFQ_CONTRACTS",
+		Value:  coremon.DefaultRFQContracts,
+	})
+
+	*rfqProxyContracts = c.String(cli.StringOpt{
+		Name:   "rfq-proxy-contracts",
+		Desc:   "Comma-separated list of contract addresses wrapping RFQ accept_quote (e.g. atomic RFQ proxy).",
+		EnvVar: "COREMON_RFQ_PROXY_CONTRACTS",
+		Value:  coremon.DefaultRFQProxyContracts,
 	})
 }

@@ -24,8 +24,8 @@ import (
 )
 
 const (
-	publicBlockRPCURL     = "https://sentry.tm.injective.network"
-	publicValidatorLCDURL = "https://sentry.lcd.injective.network"
+	publicBlockRPCURL     = "http://localhost:29657"
+	publicValidatorLCDURL = "http://localhost:15337"
 )
 
 type lcdValidatorsResponse struct {
@@ -60,9 +60,27 @@ type validatorTemplateData struct {
 	QueryValue  string
 }
 
+// errorTemplateData is an entry of errors.json, the "<codespace>:<code>" to description mapping used
+// to name error series in dashboards. Regenerate it from injective-core error registry
+// (make gen-error-docs) when new errors are registered.
+type errorTemplateData struct {
+	Codespace   string `json:"codespace"`
+	Code        uint32 `json:"code"`
+	Description string `json:"description"`
+}
+
+func (e errorTemplateData) SeriesName() string {
+	return fmt.Sprintf("%s:%d", e.Codespace, e.Code)
+}
+
+func (e errorTemplateData) DisplayName() string {
+	return fmt.Sprintf("%s(%d): %s", e.Codespace, e.Code, e.Description)
+}
+
 type dashboardTemplateData struct {
 	Validators     []validatorTemplateData
 	ValidatorQuery string
+	Errors         []errorTemplateData
 }
 
 func main() {
@@ -82,10 +100,16 @@ func main() {
 		fatalf("fetch validators: empty validator set")
 	}
 
+	errorsData, err := loadErrors(filepath.Join(templatesDir, "errors.json"))
+	if err != nil {
+		fatalf("load errors: %v", err)
+	}
+
 	templateData := buildValidatorTemplateData(validators)
 	dashboardData := dashboardTemplateData{
 		Validators:     templateData,
 		ValidatorQuery: validatorQuery(templateData),
+		Errors:         errorsData,
 	}
 	for _, dashboard := range []struct {
 		source string
@@ -277,6 +301,28 @@ func formatShares(shares float64) string {
 	default:
 		return fmt.Sprintf("%.2f", shares)
 	}
+}
+
+func loadErrors(path string) ([]errorTemplateData, error) {
+	source, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var errs []errorTemplateData
+	if err := json.Unmarshal(source, &errs); err != nil {
+		return nil, fmt.Errorf("decode %s: %w", path, err)
+	}
+
+	sort.SliceStable(errs, func(i, j int) bool {
+		if errs[i].Codespace != errs[j].Codespace {
+			return errs[i].Codespace < errs[j].Codespace
+		}
+
+		return errs[i].Code < errs[j].Code
+	})
+
+	return errs, nil
 }
 
 func renderDashboardTemplate(sourcePath, outputPath string, data dashboardTemplateData) error {

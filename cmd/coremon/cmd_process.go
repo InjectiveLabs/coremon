@@ -30,6 +30,11 @@ func processCmd(c *cli.Cmd) {
 		sysMetricsEnabled *bool
 		appHomeDir        *string
 
+		rfqContracts      *string
+		rfqProxyContracts *string
+		rfqOnly           *bool
+		stopHeight        *int
+
 		// args
 		rewindFromBlock *int
 		reverse         *bool
@@ -46,6 +51,14 @@ func processCmd(c *cli.Cmd) {
 		c,
 		&appHomeDir,
 		&sysMetricsEnabled,
+	)
+
+	initRFQOptions(
+		c,
+		&rfqContracts,
+		&rfqProxyContracts,
+		&rfqOnly,
+		&stopHeight,
 	)
 
 	initInfluxOptions(
@@ -103,6 +116,26 @@ func processCmd(c *cli.Cmd) {
 		std.RegisterInterfaces(interfaceRegistry)
 		protoCodec := codec.NewProtoCodec(interfaceRegistry)
 
+		rfqCfg := coremon.NewRFQConfig(*rfqContracts, *rfqProxyContracts)
+		rfqCfg.Reverse = *reverse
+		if *stopHeight > 0 {
+			rfqCfg.StopHeight = uint64(*stopHeight)
+		}
+
+		blockHandler := coremon.NewBlockHandlerWithMetrics(appLogger, *chainID, influxWriteAPI, rfqCfg)
+		if *rfqOnly {
+			appLogger.Infoln("RFQ-only mode: writing only coremon_rfq_txs, coremon_rfq_quotes, coremon_wasm_errors")
+			blockHandler = coremon.NewRFQOnlyBlockHandler(appLogger, *chainID, influxWriteAPI, rfqCfg)
+		}
+
+		watcherOpts := coremon.WatcherOptions{
+			// validator sets are used only by the full handler
+			SkipValidators: *rfqOnly,
+		}
+		if *stopHeight > 0 {
+			watcherOpts.StopHeight = uint64(*stopHeight)
+		}
+
 		blockWatcher, err := coremon.NewTmBlockWatcher(
 			rootCtx,
 			appLogger,
@@ -110,7 +143,8 @@ func processCmd(c *cli.Cmd) {
 			*bftRPC,
 			protoCodec,
 			*parallelBlockFetchJobs,
-			coremon.NewBlockHandlerWithMetrics(appLogger, *chainID, influxWriteAPI),
+			blockHandler,
+			watcherOpts,
 		)
 		if err != nil {
 			panic(err)

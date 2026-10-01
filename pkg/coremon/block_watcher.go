@@ -29,6 +29,14 @@ type BlockGetter interface {
 	Close()
 }
 
+// WatcherOptions tune block fetching.
+type WatcherOptions struct {
+	// StopHeight is the lowest height processed in backward direction (0 = go down to genesis).
+	StopHeight uint64
+	// SkipValidators skips fetching validator sets (ActiveSet will be empty).
+	SkipValidators bool
+}
+
 type NewBlockHandlerFn func(
 	prevBlock,
 	nextBlock NewBlockData,
@@ -42,6 +50,7 @@ func NewTmBlockWatcher(
 	protoCodec *codec.ProtoCodec,
 	parallelBlockFetchJobs int,
 	blockDataHandler NewBlockHandlerFn,
+	opts WatcherOptions,
 ) (watcher TmBlockWatcher, err error) {
 	tmClient, err := tmclient.NewRPCClient(bftRPC)
 	if err != nil {
@@ -56,6 +65,7 @@ func NewTmBlockWatcher(
 
 		parallelBlockFetchJobs: parallelBlockFetchJobs,
 		blockDataHandler:       blockDataHandler,
+		opts:                   opts,
 
 		handlerWG:            new(sync.WaitGroup),
 		protoCodec:           protoCodec,
@@ -84,6 +94,7 @@ type tmBlockWatcher struct {
 	blockGetter            BlockGetter
 	parallelBlockFetchJobs int
 	blockDataHandler       NewBlockHandlerFn
+	opts                   WatcherOptions
 
 	handlerWG            *sync.WaitGroup
 	latestSyncedBlock    uint64
@@ -342,11 +353,18 @@ func (w *tmBlockWatcher) initBlockGetter(
 		height:    initHeight,
 		direction: direction,
 
+		skipValidators: w.opts.SkipValidators,
+
 		newBlocksC:   make(chan NewBlockData, parallelJobs*100),
 		newBlocksMap: make(map[uint64]NewBlockData, parallelJobs*100),
 		closeC:       make(chan struct{}, 1),
 
 		logger: w.logger,
+	}
+
+	getter.lowestHeight = 1
+	if w.opts.StopHeight > 1 {
+		getter.lowestHeight = w.opts.StopHeight - 1
 	}
 
 	w.logger.Debug("initBlockGetter ready to announce and pull blocks")
@@ -365,6 +383,10 @@ type blockGetter struct {
 	jobCond   *sync.Cond
 	height    uint64
 	direction BlockGetterDirection
+
+	// lowestHeight is the last height announced in backward direction
+	lowestHeight   uint64
+	skipValidators bool
 
 	newBlocksC   chan NewBlockData
 	newBlocksMap map[uint64]NewBlockData
@@ -411,11 +433,13 @@ func (b *blockGetter) announceBlocks(startHeight uint64) {
 			if b.direction == BlockGetterDirectionForward {
 				height++
 			} else if b.direction == BlockGetterDirectionBackward {
-				height--
-				if height == 0 {
-					b.logger.Warningln("Block Sync: Backward sync done. Reached 0 block height.")
+				if height <= b.lowestHeight {
+					// keep the channel open, so the watcher idles instead of treating this as a failure
+					b.logger.Warningf("Block Sync: Backward sync done. Reached %d block height.", height)
 					return
 				}
+
+				height--
 			} else {
 				b.logger.Fatalf("unsupported block getter direction: %s", b.direction)
 			}
@@ -437,7 +461,8 @@ func (b *blockGetter) pullBlocks() {
 		go func(jobID int) {
 			defer wg.Done()
 
-			getHeightToFetch := func() uint64 {
+			// getHeightToFetch returns false when there is nothing more to fetch (backward sync done)
+			getHeightToFetch := func() (uint64, bool) {
 				b.jobMux.Lock()
 				defer b.jobMux.Unlock()
 
@@ -446,18 +471,26 @@ func (b *blockGetter) pullBlocks() {
 				if b.direction == BlockGetterDirectionForward {
 					b.height++
 				} else if b.direction == BlockGetterDirectionBackward {
+					if h < b.lowestHeight {
+						return 0, false
+					}
+
 					b.height--
 				} else {
 					b.logger.Fatalf("unsupported block getter direction: %s", b.direction)
 				}
 
-				return h
+				return h, true
 			}
 
 			// step 1: obtain new height to fetch
-			height := getHeightToFetch()
+			height, ok := getHeightToFetch()
+			if !ok {
+				return
+			}
 
 			for {
+
 				select {
 				case <-b.closeC:
 					return
@@ -498,7 +531,9 @@ func (b *blockGetter) pullBlocks() {
 					}
 
 					// step 3: assign a new height to the job
-					height = getHeightToFetch()
+					if height, ok = getHeightToFetch(); !ok {
+						return
+					}
 				}
 			}
 		}(i)
@@ -558,6 +593,10 @@ func (b *blockGetter) fetchBlockByNum(ctx context.Context, height uint64) (NewBl
 
 	go func() {
 		defer close(validatorSetC)
+
+		if b.skipValidators {
+			return
+		}
 
 		if err := retry.Do(func() error {
 			validatorSet, err := b.tmClient.GetValidators(ctx, int64(height))

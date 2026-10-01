@@ -678,7 +678,7 @@ func getMsgName(msg gogoproto.Message) string {
 func TestNewBlockHandlerWithMetricsReportsEmptyBlockPerProposer(t *testing.T) {
 	logger := log.WithField("test", true)
 	writeAPI := &captureWriteAPI{}
-	handler := NewBlockHandlerWithMetrics(logger, "chain-test", writeAPI)
+	handler := NewBlockHandlerWithMetrics(logger, "chain-test", writeAPI, NewRFQConfig(DefaultRFQContracts, DefaultRFQProxyContracts))
 
 	prevBlockTime := time.Unix(1_700_000_000, 0)
 	nextBlockTime := prevBlockTime.Add(1200 * time.Millisecond)
